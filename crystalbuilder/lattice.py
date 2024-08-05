@@ -77,9 +77,9 @@ class Lattice:
             self.a3 = self.array[2]
 
     
-        self.a1_scaled = ((self.a1/np.linalg.norm(self.a1))*self.magnitude[0])
-        self.a2_scaled = ((self.a2/np.linalg.norm(self.a2))*self.magnitude[1])
-        self.a3_scaled = ((self.a3/np.linalg.norm(self.a3))*self.magnitude[2])
+        self.a1_scaled = ((self.a1/np.sqrt(self.a1.dot(self.a1)))*self.magnitude[0])
+        self.a2_scaled = ((self.a2/np.sqrt(self.a2.dot(self.a2)))*self.magnitude[1])
+        self.a3_scaled = ((self.a3/np.sqrt(self.a3.dot(self.a3)))*self.magnitude[2])
 
         self.basis = np.concatenate([[self.a1_scaled],[self.a2_scaled], [self.a3_scaled]], axis=0)
 

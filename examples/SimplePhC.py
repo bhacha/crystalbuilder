@@ -1,5 +1,4 @@
-
-from .. import vectors as vm
+import crystalbuilder as cb
 from crystalbuilder import geometry as geo
 from crystalbuilder import lattice as lat
 import numpy as np
