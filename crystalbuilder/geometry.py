@@ -438,7 +438,46 @@ class Cylinder:
         
         return newcopy
 
-# class Sphere:     
+class Sphere:
+
+    def __init__(
+        self,
+        center,
+        radius,
+        **kwargs
+    ):
+        self.center = center
+        self.original_center = kwargs.get("original_center", center)
+        self.ogcenter = self.original_center
+        self.radius = radius
+        
+
+    def copy(self, **kwargs):
+        """
+            kwargs
+        -----------
+        center : 3-list of new center for copied object
+        radius : float of new radius for copied object        
+
+        """
+        cent = kwargs.get('center')
+        rad = kwargs.get('radius')
+
+
+        if 'radius' in kwargs: 
+            if debug==True:print("Making Structure with radius: ", rad)
+        else:
+            newrad = self.radius
+
+
+        if 'center' in kwargs:
+            if debug==True:print("Making Structure with Center: ", cent)
+            newcent = cent
+        else:
+            newcent = self.center
+        newcopy = Sphere(newcent, newrad, original_center=self.ogcenter)
+        
+        return newcopy
 
 class Triangle:
     """

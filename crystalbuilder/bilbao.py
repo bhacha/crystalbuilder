@@ -209,8 +209,7 @@ class SpaceGroup():
                     newpoint = get_coordinates(self.group_num, origin=n)
                     generated_points = np.vstack((generated_points, newpoint))
                 generated_points.reshape(-1,3)
-
-
+                
             else:
                 generated_points = get_coordinates(self.group_num, origin=point_list)
                 generated_points.reshape(-1,3)
@@ -237,5 +236,5 @@ if __name__ == "__main__":
 
     # plt.gca().set_aspect('equal')
 
-    crystest = SpaceGroup(81, points =[(.1, .4, 0), (.3, .5, 0)])
+    crystest = SpaceGroup(230, points =[(.1, .4, 0), (.3, .5, 0)])
     print(crystest.generated_points)
