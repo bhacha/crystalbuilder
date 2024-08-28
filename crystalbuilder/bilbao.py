@@ -168,9 +168,6 @@ class SpaceGroup():
         k-vectors with labels
         generator matrices
         generation of equivalent points
-
-    Parameters
-
     """
 
     def __init__(
@@ -178,6 +175,21 @@ class SpaceGroup():
             group_number,
             **kwargs
                     ) -> None:
+        
+        """
+        Create the instance of a Space Group
+
+        Parameters
+        -----------
+        group_number : int
+            1-230, corresponding to IUCr and Bilbao server notation.
+        
+        kwargs
+        -------
+        points : list, ndarray
+            Initial coordinates that will be operated on by the symmetry operations to create the entire unit cell
+        
+        """
         
         self.point_list = kwargs.get("points", None)
         self.group_num = group_number
