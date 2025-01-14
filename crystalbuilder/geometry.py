@@ -401,14 +401,55 @@ class Cylinder:
         self.height = height      
         self.inaxis = axis
 
-        if self.inaxis==2:
-            self.axis=np.array([0, 0, 1])
-        elif self.inaxis==1:
-            self.axis=np.array([0, 1, 0])
-        elif self.inaxis==0:
-            self.axis=np.array([1, 0, 0])
+        if len(self.inaxis) <= 1:
+            if self.inaxis==2:
+                self.axis=np.array([0, 0, 1])
+            elif self.inaxis==1:
+                self.axis=np.array([0, 1, 0])
+            elif self.inaxis==0:
+                self.axis=np.array([1, 0, 0])
+            else:
+                print("Error: Axis not Found")
+        elif len(self.inaxis) == 3:
+            self.axis = np.asarray(self.inaxis)
         else:
-            print("Error: Axis not Found")
+            print("Error. Please specify axis using either an integer or using exactly 3 elements")
+
+
+    @classmethod
+    def from_vertices(cls, vertices, radius, **kwargs):
+        """
+        Create a cylinder using the start and end points (vertices) and a specified radius
+
+        
+        Parameters
+        -----------
+
+        vertices : list of iterables
+            starting and ending points. Should be in the form of [ (x,y,z), (x,y,z)]
+
+        radius : float
+            radius of cylinder
+        
+        """
+
+    
+        start_point = np.asarray(vertices[0])
+        end_point = np.asarray(vertices[1])
+
+        height = np.linalg.norm(end_point-start_point)
+
+        vector = end_point-start_point
+
+        center = np.mean([start_point, end_point])
+
+        return cls(center=center, radius=radius, height=height, axis=vector)
+
+
+ 
+  
+
+
 
 
     def copy(self, **kwargs):
