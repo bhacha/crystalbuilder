@@ -3,8 +3,10 @@ from crystalbuilder import lattice as lat
 from crystalbuilder import geometry as geo
 import meep as mp
 #import tidy3d as td
-import lumpy.simobjects as lp
-
+try:
+    import lumpy.simobjects as lp
+except ModuleNotFoundError:
+    pass
 debug = "off"
 
 def vectorize(list):
@@ -125,6 +127,18 @@ def _geo_to_meep(geometry_object, material, ismpb = False, **kwargs):
                 item = mp.Prism(vertices = newverts, axis = vectorize(m.axis), height = m.height, material=material)
                 geom_list.append(item)
 
+            elif isinstance(m, geo.Sphere):
+                if ismpb == True: 
+                    k = vectorize(m.center)
+                    newcent = mp.cartesian_to_lattice(k, geo_lattice)
+                else:
+                    newcent = vectorize(m.center)
+
+                item = mp.Sphere(radius=m.radius,center=newcent, material=material)
+                geom_list.append(item)
+
+
+
 
     except TypeError:
             if isinstance(geometry_object, geo.SuperCell):
@@ -137,7 +151,12 @@ def _geo_to_meep(geometry_object, material, ismpb = False, **kwargs):
             elif isinstance(geometry_object, geo.Cylinder):
                 m = geometry_object
                 if debug=="on": print("This is running the single cylinder")
-                geom_list.append(mp.Cylinder(radius=m.radius, axis= m.axis, height=m.height, center=m.center, material=material))
+                if ismpb == True: 
+                    k = vectorize(m.center)
+                    newcent = mp.cartesian_to_lattice(k, geo_lattice)
+                else:
+                    newcent = vectorize(m.center)
+                geom_list.append(mp.Cylinder(radius=m.radius, axis= m.axis, height=m.height, center=newcent, material=material))
 
             elif isinstance(geometry_object, geo.Triangle):
                 if debug=="on": print("This is running the single triangle")
@@ -149,9 +168,19 @@ def _geo_to_meep(geometry_object, material, ismpb = False, **kwargs):
                         newverts.append(mp.cartesian_to_lattice(k, geo_lattice))
                 else:
                     newverts = vectorize(m.verttuple)
-
-
                 geom_list.append(mp.Prism(vertices = newverts, axis = vectorize(m.axis), height = m.height, material=material))
+
+            elif isinstance(geometry_object, geo.Sphere):
+                m = geometry_object
+                if ismpb == True: 
+                    k = vectorize(m.center)
+                    newcent = mp.cartesian_to_lattice(k, geo_lattice)
+                else:
+                    newcent = vectorize(m.center)
+
+                item = mp.Cylinder(radius=m.radius, center=newcent, material=material)
+                geom_list.append(item)
+
 
 
     return geom_list
@@ -342,7 +371,7 @@ def _geo_to_lumerical(geometry_object, material):
 
     return geom_list
 
-def lattice(mpblattice):
+def to_geo_lattice(mpblattice):
     """converts mpb's `Lattice` to the CrystalBuilder Lattice
 
     Parameters
@@ -369,6 +398,32 @@ def lattice(mpblattice):
     else:
         print("Error: Please pass a MEEP lattice object as the argument")
 
+def to_mpb_lattice(geolattice):
+    """converts crystalbuilder Lattice to the mpb lattice
+
+    Parameters
+    ----------
+    lat.Lattice() 
+        CrystalBuilder lattice object
+        
+
+    Returns
+    -------
+    mpblattice : mp.Lattice()
+        mpb/MEEP lattice object
+
+
+    """
+
+    if isinstance(geolattice, lat.Lattice):
+        magnitude = np.asarray(geolattice.magnitude)
+        basis1 = np.asarray(geolattice.a1)
+        basis2 = np.asarray(geolattice.a2)
+        basis3 = np.asarray(geolattice.a3)
+        lattice = mp.Lattice(size = magnitude, basis1 = basis1, basis2 = basis2, basis3=basis3)
+        return lattice 
+    else:
+        print("Error: Please pass a crystalbuilder lattice object as the argument")
 
 if __name__ == '__main__':
     """testing code"""
