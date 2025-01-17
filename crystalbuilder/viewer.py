@@ -5,7 +5,7 @@ import crystalbuilder.geometry as geo
 vedo.settings.default_backend='vtk'
 
 
-def visualize(structures):
+def visualize(structures, plotter_style=9):
     """
     
     Parameters
@@ -13,14 +13,17 @@ def visualize(structures):
     structures : list of geo
 
     """
-    plot = vedo.Plotter(axes=2)
+    
+    plot = vedo.Plotter(axes=plotter_style)
 
 
     for object in structures:
-
+        
         if isinstance(object, geo.Cylinder):
-            print("cylinder")
             plot += visualize_cylinder(object)
+        
+        elif isinstance(object, geo.SuperCell):
+            plot += visualize_supercell(object)
 
 
     plot.show().close()
@@ -31,6 +34,14 @@ def visualize_cylinder(cylinder):
     height = cylinder.height
     axis = cylinder.axis
     return vedo.Cylinder(pos=center, r=radius, height=height, axis=axis)
+
+def visualize_supercell(SuperCell):
+    objects = []
+    for structure in SuperCell:
+        if isinstance(structure, geo.Cylinder):
+            objects.append(visualize_cylinder(structure))
+    return objects
+
 
 
 

@@ -84,6 +84,9 @@ class SuperCell():
 
         if self.shiftcell == True:
             self.center = self.cellcenter
+
+    def __iter__(self):
+        return iter(self.structures)
                    
     def rotatecell(self, deg, copy=True):
             """
@@ -399,17 +402,28 @@ class Cylinder:
         self.ogcenter = self.original_center
         self.radius = radius
         self.height = height      
-        self.inaxis = axis
+        self.axis = axis
 
-        if self.inaxis==2:
-            self.axis=np.array([0, 0, 1])
-        elif self.inaxis==1:
-            self.axis=np.array([0, 1, 0])
-        elif self.inaxis==0:
-            self.axis=np.array([1, 0, 0])
-        else:
-            print("Error: Axis not Found")
-
+        try: 
+            if self.axis==2:
+                self.axis=np.array([0, 0, 1])
+            elif self.axis==1:
+                self.axis=np.array([0, 1, 0])
+            elif self.axis==0:
+                self.axis=np.array([1, 0, 0])
+            else:
+                pass
+        except ValueError:
+            pass
+    @classmethod
+    def from_vertices(cls, vertices, radius):
+        """Create a cylinder based on its start and end vertices"""
+        vert1 = np.asarray(vertices[0])
+        vert2 = np.asarray(vertices[1])
+        height = np.linalg.norm((vert2 - vert1))
+        center = np.mean((vert1, vert2), axis=0)
+        axis = vert2 - vert1
+        return cls(center=center, radius=radius, height=height, axis=axis)
 
     def copy(self, **kwargs):
         """
@@ -666,5 +680,4 @@ class eqTriangle(Triangle):
 
 
         Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center)
-
 

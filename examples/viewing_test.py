@@ -6,57 +6,78 @@ lat.debug = "off"
 import crystalbuilder.geometry as geo
 geo.debug = "off"
 import numpy as np
-
+import crystalbuilder.viewer as view
 
 ### Rhombus unit cell ###
 ### ALL UNITS IN MICRONS ###
-a1 = [np.sqrt(3)/2, .5, 0]
-a2 = [np.sqrt(3)/2, -.5 ,0]
-a3 = [0,0,1]
-amag = 1
+a1 = [0, 1, 1]
+a2 = [1, 0 ,1]
+a3 = [1,1,0]
+amag = np.sqrt(.5)
 lat1 = lat.Lattice(a1, a2, a3, magnitude=[amag,amag,amag])
 
 ### Cylinders in unit cell ###
-cylheight = 1.2
-rad = .15*amag
+cylheight = 1*amag
+rad = .01*amag
 r1 = .15*amag
 r2 = .15*amag
 cyldr = 0
 
 
+diamond = [
+    ## First the corners
+    [0,0,0], #0
+    [0,0,1], #1
+    [0,1,0], #2
+    [1,0,0], #3
+    [0,1,1], #4
+    [1,0,1], #5
+    [1,1,0], #6
+    [1,1,1], #7
+
+    ## The faces
+    [0,1/2, 1/2], #8
+    [1/2, 0, 1/2], #9
+    [1/2, 1/2, 0], #10
+    [1, 1/2, 1/2], #11
+    [1/2, 1, 1/2], #12
+    [1/2, 1/2, 1], #13
+
+    ## Tetrahedral sites
+    [1/4, 1/4, 1/4], #14
+    [1/4, 3/4, 3/4], #15
+    [3/4, 1/4, 3/4], #16
+    [3/4, 3/4, 1/4] #17
+]
 
 ### Geometry ###
-d=(1/3)*amag
-centc = (0,0,0)
-centr = (0, d, 0)
-centl = (0, -d, 0)
-centbr =(-d/2*np.sqrt(3),  d/2, 0)
-centbl =(-d/2*np.sqrt(3), -d/2, 0)
-centtl =( d/2*np.sqrt(3),  -d/2, 0)
-centtr =( d/2*np.sqrt(3),   d/2, 0)
 
-cylh = cylheight
+d= .125*amag
 
-cyl_r = geo.Cylinder(radius=r2, center=centr, height=cylh) #Top in MEEP
-cyl_l = geo.Cylinder(radius=r1, center=centl, height=cylh) # Bottom in MEEP
-cyl_br = geo.Cylinder(radius=r1, center=centbr, height=cylh) #Top left in MEEP
-cyl_bl = geo.Cylinder(radius=r2, center=centbl, height=cylh) #bottom left in meep
-cyl_tl = geo.Cylinder(radius=r2, center=centtl, height=cylh) # bottom right in meep
-cyl_tr = geo.Cylinder(radius=r1, center=centtr, height=cylh) #top right in mEEP
+cyl1_verts = (diamond[14], diamond[0])
+cyl2_verts = (diamond[14], diamond[10])
+cyl3_verts = (diamond[14], diamond[9])
+cyl4_verts = (diamond[14], diamond[8])
 
+cyl_1 = geo.Cylinder.from_vertices(cyl1_verts, radius=rad)
+cyl_2 = geo.Cylinder.from_vertices(cyl2_verts, radius=rad)
+cyl_3 = geo.Cylinder.from_vertices(cyl3_verts, radius=rad)
+cyl_4 = geo.Cylinder.from_vertices(cyl4_verts, radius=rad)
 
-cyllist = [cyl_r, cyl_l, cyl_br, cyl_tl, cyl_tr, cyl_bl]
+cyllist = [cyl_1, cyl_2, cyl_3, cyl_4]
 
 supercell = geo.SuperCell(cyllist)
 
-tiledcells = lat1.tile_geogeometry(supercell,10, 10, 1, style='centered')
+tiledcells = lat1.tile_geogeometry(supercell,3, 3, 3, style='centered')
 
 ### Apply modulation ###
-for n in tiledcells:
-        lat1.modulate_cells(n, 
-                            vortex_radius=3, 
-                            winding_number=-1,
-                            max_modulation=0,
-        modulation_type='dual',
-        whole_cell=False)
+# for n in tiledcells:
+#         lat1.modulate_cells(n, 
+#                             vortex_radius=3, 
+#                             winding_number=-1,
+#                             max_modulation=.2*r1,
+#         modulation_type='dual',
+#         whole_cell=False)
         
+
+view.visualize(tiledcells, plotter_style=8)
