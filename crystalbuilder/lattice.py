@@ -608,10 +608,11 @@ class Lattice:
         newrad = oldrad + rmod
         oldpos = np.asarray(geo_object.center)
         newpos = in_cell_position + (posmod/center_distance)*in_cell_position + np.asarray(cellcenter)
-
-        print("The new position would be: ", newpos)
-        print("The old position was: ", oldpos)
-        print("\n")
+        if debug == 'on':
+            print("The new position would be: ", newpos)
+            print("The old position was: ", oldpos)
+            print("\n")
+            
         if newrad > 0:
             geo_object.radius = newrad
             geo_object.center = newpos
