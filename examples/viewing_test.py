@@ -7,6 +7,7 @@ import crystalbuilder.geometry as geo
 geo.debug = "off"
 import numpy as np
 import crystalbuilder.viewer as view
+import vedo 
 
 ### Rhombus unit cell ###
 ### ALL UNITS IN MICRONS ###
@@ -68,7 +69,7 @@ cyllist = [cyl_1, cyl_2, cyl_3, cyl_4]
 
 supercell = geo.SuperCell(cyllist)
 
-tiledcells = lat1.tile_geogeometry(supercell,3, 3, 3, style='centered')
+tiledcells = lat1.tile_geogeometry(supercell,2, 2, 2, style='centered')
 
 ### Apply modulation ###
 # for n in tiledcells:
@@ -80,4 +81,5 @@ tiledcells = lat1.tile_geogeometry(supercell,3, 3, 3, style='centered')
 #         whole_cell=False)
         
 
-view.visualize(tiledcells, plotter_style=8)
+test = view.visualize(tiledcells, plotter_style=1)
+

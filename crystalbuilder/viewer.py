@@ -27,6 +27,7 @@ def visualize(structures, plotter_style=9):
 
 
     plot.show().close()
+    return plot
 
 def visualize_cylinder(cylinder):
     center = cylinder.center

@@ -451,7 +451,6 @@ class Lattice:
                         newx = xcen+(k*self.basis[0][0] + m*self.basis[1][0] + p*self.basis[2][0])
                         newy = ycen+(k*self.basis[0][1] + m*self.basis[1][1] + p*self.basis[2][1])
                         newz = zcen+(k*self.basis[0][2] + m*self.basis[1][2] + p*self.basis[2][2])
-                        
                                             
                         newvert = [newx, newy, newz]
                         
