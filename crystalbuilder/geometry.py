@@ -384,7 +384,7 @@ class HexagonalVortexCell(SuperCell):
         print("copying: with m = ", m)
         print("copying: with phi = ", phi)
 
-        newcopy = DiracVortexCell(self.lattice, center, self._side_length, m, self.m0, phi)
+        newcopy = HexagonalVortexCell(self.lattice, center, self._side_length, m, self.m0, phi)
 
         return newcopy
 

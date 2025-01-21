@@ -82,4 +82,10 @@ tiledcells = lat1.tile_geogeometry(supercell,2, 2, 2, style='centered')
         
 
 test = view.visualize(tiledcells, plotter_style=1)
+# test.get_meshes()
 
+# k=0
+# for obj in test.objects:
+#     k+=1
+#     string=f"diamond/object-{k}.obj"
+#     vedo.write(obj, string)
