@@ -10,7 +10,7 @@ setup(
     packages=['crystalbuilder'],
     install_requires=['numpy', 'matplotlib'],
     extras_require={
-        'full' : ['vedo', 'tidy3d', 'meep'],
+        'full' : ['vedo', 'tidy3d', 'pymeep'],
         'windows': ['vedo', 'tidy3d'],
         'basic': ['vedo']
     }
