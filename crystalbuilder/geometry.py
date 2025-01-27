@@ -416,11 +416,16 @@ class Cylinder:
         except ValueError:
             pass
     @classmethod
-    def from_vertices(cls, vertices, radius):
+    def from_vertices(cls, vertices, radius, height_padding=False):
         """Create a cylinder based on its start and end vertices"""
         vert1 = np.asarray(vertices[0])
         vert2 = np.asarray(vertices[1])
-        height = np.linalg.norm((vert2 - vert1))
+        if height_padding == False:
+            height = np.linalg.norm((vert2 - vert1))
+        else:
+            height = np.linalg.norm((vert2 - vert1))+height_padding
+
+        
         center = np.mean((vert1, vert2), axis=0)
         axis = vert2 - vert1
         return cls(center=center, radius=radius, height=height, axis=axis)
