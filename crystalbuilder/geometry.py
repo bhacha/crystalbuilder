@@ -402,7 +402,9 @@ class Cylinder:
         self.ogcenter = self.original_center
         self.radius = radius
         self.height = height      
+        self.inaxis = axis
         self.axis = axis
+        
 
         try: 
             if self.axis==2:
