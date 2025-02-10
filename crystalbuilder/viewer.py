@@ -22,6 +22,9 @@ def visualize(structures, plotter_style=9):
         if isinstance(object, geo.Cylinder):
             plot += visualize_cylinder(object)
         
+        elif isinstance(object, geo.Sphere):
+            plot += visualize_sphere(object)
+
         elif isinstance(object, geo.SuperCell):
             plot += visualize_supercell(object)
 
@@ -35,6 +38,11 @@ def visualize_cylinder(cylinder):
     height = cylinder.height
     axis = cylinder.axis
     return vedo.Cylinder(pos=center, r=radius, height=height, axis=axis)
+
+def visualize_sphere(sphere):
+    center = sphere.center
+    radius = sphere.radius
+    return vedo.Sphere(pos=center, r=radius)
 
 def visualize_supercell(SuperCell):
     objects = []

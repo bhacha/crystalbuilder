@@ -290,7 +290,25 @@ class Lattice:
             
             if vm.debug == 'on':
                 print("Lat: ", "newgeom = ", newgeom[0].center, "   ", newgeom[1].center)
+    
+        elif isinstance(Geometry, geometry.Sphere):
+            if vm.debug == 'on': print("Lat: Geometry is a Sphere")
+            xcen = Geometry.center[0]
+            ycen = Geometry.center[1]
+            zcen = Geometry.center[2]
+            if vm.debug == 'on': print("Lat: ", [xcen, ycen, zcen])
+
+            tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
+            if vm.debug == 'on': print("Lat: ", tiledpoints)
+
+            for m in range(0,len(tiledpoints)):
+                if vm.debug == 'on': print("Lat: the center is: \n", tiledpoints[m], "\n")
+                newstruct = Geometry.copy(center=tiledpoints[m])
+                newgeom.append(newstruct)
             
+            if vm.debug == 'on':
+                print("Lat: ", "newgeom = ", newgeom[0].center, "   ", newgeom[1].center)
+
         elif isinstance(Geometry, list):
             if vm.debug == 'on': print("Lat: Geometry is a list")
             for n in Geometry:
@@ -468,6 +486,14 @@ class Lattice:
         
         return newpoints
 
+    def cubic_tiling(self, centers:list, a1reps:int, a2reps:int, a3reps:int, **kwargs):
+        """
+        Tile unit cells in a way that gives a cubic or semi-cubic structure by 
+        
+        
+        """
+        
+        pass
      
 
 ### Tiling Modifications ###
