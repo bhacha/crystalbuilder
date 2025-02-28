@@ -25,6 +25,9 @@ def visualize(structures, plotter_style=9, **kwargs):
         elif isinstance(object, geo.SuperCell):
             plot += visualize_supercell(object, **kwargs)
 
+        elif isinstance(object, geo.Sphere):
+            plot += visualize_sphere(object, **kwargs)
+
     return plot
 
 def add_to_visualizer(structures, plot, **kwargs):
@@ -42,11 +45,18 @@ def visualize_cylinder(cylinder, **kwargs):
     axis = cylinder.axis
     return vedo.Cylinder(pos=center, r=radius, height=height, axis=axis, **kwargs)
 
+def visualize_sphere(sphere, **kwargs):
+    center = sphere.center
+    radius = sphere.radius
+    return vedo.Sphere(pos=center, r=radius, **kwargs)
+
 def visualize_supercell(SuperCell, **kwargs):
     objects = []
     for structure in SuperCell:
         if isinstance(structure, geo.Cylinder):
             objects.append(visualize_cylinder(structure, **kwargs))
+        elif isinstance(structure, geo.Sphere):
+            objects.append(visualize_sphere(structure, **kwargs))
     return objects
 
 

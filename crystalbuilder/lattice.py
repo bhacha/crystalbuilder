@@ -488,10 +488,10 @@ class Lattice:
 
     def cubic_tiling(self, centers:list, a1reps:int, a2reps:int, a3reps:int, **kwargs):
         """
-        Tile unit cells in a way that gives a cubic or semi-cubic structure by 
-        
-        
+        Tile unit cells in a way that gives a cubic or semi-cubic structure by limiting bounds.
         """
+        
+
         
         pass
      
