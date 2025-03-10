@@ -20,20 +20,23 @@ def visualize(structures, plotter_style=9, **kwargs):
     for object in structures:
         
         if isinstance(object, geo.Cylinder):
-            plot += visualize_cylinder(object, **kwargs)
-        
+            obj  = visualize_cylinder(object, **kwargs)
+            plot += obj
         elif isinstance(object, geo.SuperCell):
-            plot += visualize_supercell(object, **kwargs)
-
+            obj  = visualize_supercell(object, **kwargs)
+            plot += obj
         elif isinstance(object, geo.Sphere):
-            plot += visualize_sphere(object, **kwargs)
-
+            obj = visualize_sphere(object, **kwargs)
+            plot += obj
+            
     return plot
 
 def add_to_visualizer(structures, plot, **kwargs):
     for object in structures:       
         if isinstance(object, geo.Cylinder):
             plot += visualize_cylinder(object, **kwargs)
+        elif isinstance(object, geo.Sphere):
+            plot += visualize_sphere(object, **kwargs)
         elif isinstance(object, geo.SuperCell):
             plot += visualize_supercell(object, **kwargs)
 
@@ -43,12 +46,18 @@ def visualize_cylinder(cylinder, **kwargs):
     radius = cylinder.radius
     height = cylinder.height
     axis = cylinder.axis
-    return vedo.Cylinder(pos=center, r=radius, height=height, axis=axis, **kwargs)
+    name = str(cylinder.center)
+    obj = vedo.Cylinder(pos=center, r=radius, height=height, axis=axis, **kwargs).legend(name)
+    obj.name = name
+    return obj
 
 def visualize_sphere(sphere, **kwargs):
     center = sphere.center
     radius = sphere.radius
-    return vedo.Sphere(pos=center, r=radius, **kwargs)
+    name = str(sphere.center)
+    obj = vedo.Sphere(pos=center, r=radius, **kwargs).legend(name)
+    obj.name = name
+    return obj
 
 def visualize_supercell(SuperCell, **kwargs):
     objects = []

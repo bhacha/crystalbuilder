@@ -417,6 +417,7 @@ class Cylinder:
                 pass
         except ValueError:
             pass
+
     @classmethod
     def from_vertices(cls, vertices, radius, height_padding=False):
         """Create a cylinder based on its start and end vertices"""
@@ -431,6 +432,15 @@ class Cylinder:
         center = np.mean((vert1, vert2), axis=0)
         axis = vert2 - vert1
         return cls(center=center, radius=radius, height=height, axis=axis)
+    
+    @classmethod
+    def towards_point(cls, center, endpoint, radius,height):
+        """Create a cylinder based on its start and end vertices"""
+        center = np.asarray(center)
+        endpoint = np.asarray(endpoint)
+        axis = endpoint-center
+        return cls(center=center, radius=radius, height=height, axis=axis)
+
 
     def copy(self, **kwargs):
         """
