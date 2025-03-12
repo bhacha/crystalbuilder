@@ -84,6 +84,9 @@ class SuperCell():
 
         if self.shiftcell == True:
             self.center = self.cellcenter
+
+    def __iter__(self):
+        return iter(self.structures)
                    
     def rotatecell(self, deg, copy=True):
             """
@@ -381,7 +384,7 @@ class HexagonalVortexCell(SuperCell):
         print("copying: with m = ", m)
         print("copying: with phi = ", phi)
 
-        newcopy = DiracVortexCell(self.lattice, center, self._side_length, m, self.m0, phi)
+        newcopy = HexagonalVortexCell(self.lattice, center, self._side_length, m, self.m0, phi)
 
         return newcopy
 
@@ -400,25 +403,23 @@ class Cylinder:
         self.radius = radius
         self.height = height      
         self.inaxis = axis
-
-        if len(self.inaxis) <= 1:
-            if self.inaxis==2:
+        self.axis = axis
+        
+        try: 
+            if self.axis==2:
                 self.axis=np.array([0, 0, 1])
-            elif self.inaxis==1:
+            elif self.axis==1:
                 self.axis=np.array([0, 1, 0])
-            elif self.inaxis==0:
+            elif self.axis==0:
                 self.axis=np.array([1, 0, 0])
             else:
-                print("Error: Axis not Found")
-        elif len(self.inaxis) == 3:
-            self.axis = np.asarray(self.inaxis)
-        else:
-            print("Error. Please specify axis using either an integer or using exactly 3 elements")
-
+                pass
+        except ValueError:
+            pass
 
     @classmethod
-    def from_vertices(cls, vertices, radius, **kwargs):
-        """
+    def from_vertices(cls, vertices, radius, height_padding=False):
+        """     
         Create a cylinder using the start and end points (vertices) and a specified radius
 
         
@@ -432,25 +433,25 @@ class Cylinder:
             radius of cylinder
         
         """
+        vert1 = np.asarray(vertices[0])
+        vert2 = np.asarray(vertices[1])
+        if height_padding == False:
+            height = np.linalg.norm((vert2 - vert1))
+        else:
+            height = np.linalg.norm((vert2 - vert1))+height_padding
 
+        
+        center = np.mean((vert1, vert2), axis=0)
+        axis = vert2 - vert1
+        return cls(center=center, radius=radius, height=height, axis=axis)
     
-        start_point = np.asarray(vertices[0])
-        end_point = np.asarray(vertices[1])
-
-        height = np.linalg.norm(end_point-start_point)
-
-        vector = end_point-start_point
-
-        center = np.mean([start_point, end_point])
-
-        return cls(center=center, radius=radius, height=height, axis=vector)
-
-
- 
-  
-
-
-
+    @classmethod
+    def towards_point(cls, center, endpoint, radius,height):
+        """Create a cylinder based on its start and end vertices"""
+        center = np.asarray(center)
+        endpoint = np.asarray(endpoint)
+        axis = endpoint-center
+        return cls(center=center, radius=radius, height=height, axis=axis)
 
     def copy(self, **kwargs):
         """
@@ -707,5 +708,4 @@ class eqTriangle(Triangle):
 
 
         Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center)
-
 

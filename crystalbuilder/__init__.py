@@ -1,4 +1,4 @@
-__all__ = ["convert", "geometry", "lattice", "vectors","bilbao"]
+__all__ = ["convert", "geometry", "lattice", "vectors","bilbao", "viewer"]
 
 
 
@@ -17,4 +17,6 @@ lattice.py: the lattice class contains the basis vector information, and the met
 vectors.py: methods for rotating/shifting/scaling vectors defined as numpy arrays or simple lists. This probably won't need to be called by users, but is integral for all the other packages.
 
 bilbao.py: methods for retrieving space group information from Bilbao servers
+
+viewer.py: methods for visualizing structures
 """

@@ -1,7 +1,14 @@
 import numpy as np
 from crystalbuilder import lattice as lat
 from crystalbuilder import geometry as geo
-import meep as mp
+import platform
+if platform.system() == 'Windows':
+    pass
+else:
+    import meep as mp
+
+
+
 #import tidy3d as td
 try:
     import lumpy.simobjects as lp
