@@ -405,7 +405,6 @@ class Cylinder:
         self.inaxis = axis
         self.axis = axis
         
-
         try: 
             if self.axis==2:
                 self.axis=np.array([0, 0, 1])
@@ -420,7 +419,20 @@ class Cylinder:
 
     @classmethod
     def from_vertices(cls, vertices, radius, height_padding=False):
-        """Create a cylinder based on its start and end vertices"""
+        """     
+        Create a cylinder using the start and end points (vertices) and a specified radius
+
+        
+        Parameters
+        -----------
+
+        vertices : list of iterables
+            starting and ending points. Should be in the form of [ (x,y,z), (x,y,z)]
+
+        radius : float
+            radius of cylinder
+        
+        """
         vert1 = np.asarray(vertices[0])
         vert2 = np.asarray(vertices[1])
         if height_padding == False:
@@ -440,7 +452,6 @@ class Cylinder:
         endpoint = np.asarray(endpoint)
         axis = endpoint-center
         return cls(center=center, radius=radius, height=height, axis=axis)
-
 
     def copy(self, **kwargs):
         """
