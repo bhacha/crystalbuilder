@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='crystalbuilder',
-    version='0.0.5',
+    version='0.1.0',
     description='A Python package to create various photonic crystal patterns',
     author='Brandon Hacha',
     license='MIT',
