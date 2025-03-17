@@ -3,8 +3,18 @@ import numpy as np
 from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
 import copy
+import scipy.spatial as scs
 
 debug = 'off'
+
+class Structure():
+    def __init__(
+            self,
+            **kwargs
+    ):
+        pass
+
+    
 
 class SuperCell():
     """
@@ -212,7 +222,7 @@ class SuperCell():
     def radius(self, newrad):
         for n in self.structures:
             n.radius= newrad
-
+       
 class CylinderVortexCell(SuperCell):
 
     def __init__(
@@ -388,7 +398,7 @@ class HexagonalVortexCell(SuperCell):
 
         return newcopy
 
-class Cylinder:
+class Cylinder(Structure):
     def __init__(
             self,
             center,
@@ -397,6 +407,7 @@ class Cylinder:
             axis=2,
             **kwargs
     ):
+        super().__init__()
         self.center = center
         self.original_center = kwargs.get("original_center", center)
         self.ogcenter = self.original_center
@@ -480,7 +491,7 @@ class Cylinder:
         
         return newcopy
 
-class Sphere:
+class Sphere(Structure):
 
     def __init__(
         self,
@@ -521,7 +532,7 @@ class Sphere:
         
         return newcopy
 
-class Triangle:
+class Triangle(Structure):
     """
     Class for triangular structures. Defines vertices, height, and center (centroid).
     Vertices are defined relative to centroid if center != None
@@ -532,7 +543,6 @@ class Triangle:
     """
 
     def __init__(
-            
         self,
         vertices,
         height,
@@ -709,3 +719,37 @@ class eqTriangle(Triangle):
 
         Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center)
 
+class NearestNeighbors:
+    """
+    Connect nearest neighbors in a list of points with cylinders
+    """
+    def __init__(self,
+                points,
+                radius,
+                neighborhood_range):
+        
+        self.neighborhood = neighborhood_range
+        self.points = points
+        self.radius = radius
+        neighbors = self.find_neighbors()
+        self.structure_list = self.connect_neighbors(neighbor_pairs=neighbors)
+    
+    def find_neighbors(self):
+        self.pointarr = np.asarray(self.points)
+        self.kdtree = scs.KDTree(self.pointarr, leafsize=15, compact_nodes=True)
+        neighbors = self.kdtree.query_pairs(r=self.neighborhood, p=2)
+        return neighbors
+    
+    def connect_neighbors(self, neighbor_pairs):
+        structure_list = []
+        for pair in neighbor_pairs:
+            point = self.pointarr[pair[0]]
+            neighbor = self.pointarr[pair[1]]
+            structure_list.append(Cylinder.from_vertices([point, neighbor], radius=self.radius))
+        return structure_list
+
+if __name__ == "__main__":
+    rng = np.random.default_rng()
+    points = rng.random((15, 3))
+
+    test = NearestNeighbors(points, radius=.5, neighborhood_range=.3)
