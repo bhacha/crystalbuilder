@@ -1,4 +1,4 @@
-__all__ = ["convert", "geometry", "lattice", "vectors","bilbao", "viewer"]
+__all__ = ["convert", "geometry", "lattice", "vectors","bilbao", "viewer", "lumpy_convert"]
 
 
 
