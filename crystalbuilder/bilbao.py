@@ -209,20 +209,17 @@ class SpaceGroup():
                     newpoint = get_coordinates(self.group_num, origin=n)
                     generated_points = np.vstack((generated_points, newpoint))
                 generated_points.reshape(-1,3)
+                generated_points = np.unique(generated_points, axis=0)
                 
             else:
                 generated_points = get_coordinates(self.group_num, origin=point_list)
                 generated_points.reshape(-1,3)
+                generated_points = np.unique(generated_points, axis=0)
         
             return generated_points
         else:
             pass
         
-
-
-
-
-
 
 if __name__ == "__main__":
     # from matplotlib import pyplot as plt
