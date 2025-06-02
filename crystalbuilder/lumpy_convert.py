@@ -15,8 +15,7 @@ def debug_msg(string, level):
     req_deb = debug_levels[debug]
     if level <= req_deb:
         print(string)
-    
-    
+        
 def flatten(list):
     """ Some of these methods can accidentally create nested lists, so this function can be used in try statements to correct those """
     try:
@@ -25,11 +24,10 @@ def flatten(list):
         flat_list = list
     return flat_list
 
-
 def convert_cylinder(Cylinder, material='dielectric', index=1.5):    
     axis = Cylinder.axis
     lumCyl = so.Cylinder(radius=Cylinder.radius, height=Cylinder.height, center=tuple(flatten(Cylinder.center)), material=material, index=index, orientation=axis)
-    debug_msg(lumCyl, 3)
+    debug_msg(lumCyl.out(), 3)
     return lumCyl
 
 def convert_prism(Prism, material='dielectric', index=1.5):

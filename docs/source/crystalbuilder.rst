@@ -1,18 +1,15 @@
-crystalbuilder package
-======================
-
 Submodules
-----------
+==========
 
-crystalbuilder.bilbao module
-----------------------------
+The Bilbao Crystallographic Server Connection
+----------------------------------------------
 
 .. automodule:: crystalbuilder.bilbao
    :members:
    :undoc-members:
    :show-inheritance:
 
-crystalbuilder.convert module
+Conversion Methods
 -----------------------------
 
 .. automodule:: crystalbuilder.convert
@@ -20,7 +17,7 @@ crystalbuilder.convert module
    :undoc-members:
    :show-inheritance:
 
-crystalbuilder.geometry module
+Geometry
 ------------------------------
 
 .. automodule:: crystalbuilder.geometry
@@ -28,7 +25,7 @@ crystalbuilder.geometry module
    :undoc-members:
    :show-inheritance:
 
-crystalbuilder.lattice module
+Lattice
 -----------------------------
 
 .. automodule:: crystalbuilder.lattice
@@ -36,18 +33,10 @@ crystalbuilder.lattice module
    :undoc-members:
    :show-inheritance:
 
-crystalbuilder.vectors module
+Vector Tools
 -----------------------------
 
 .. automodule:: crystalbuilder.vectors
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: crystalbuilder
    :members:
    :undoc-members:
    :show-inheritance:

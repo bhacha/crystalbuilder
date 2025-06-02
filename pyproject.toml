@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crystalbuilder"
+authors = [{name = "Brandon Hacha"}]
+dynamic = ["version", "description"]
+readme = "README.rst"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "vedo",
+    "pymeep; platform_system=='Linux'",
+    "beautifulsoup4"
+]
+
+[project.optional-dependencies]
+full = ['tidy3d']
+
