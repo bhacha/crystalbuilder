@@ -2,6 +2,17 @@
 requires = ["hatchling >= 1.26","hatch-vcs" ]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = {search_parent_directories = true}
+
+[tool.hatch.build.hooks.vcs]
+version-file = "_version.py"
+
+
 [project]
 name = "crystalbuilder"
 authors = [{name = "Brandon Hacha"}]
@@ -18,13 +29,3 @@ dependencies = [
 
 [project.optional-dependencies]
 full = ['tidy3d']
-
-
-[tool.hatch.metadata]
-allow-direct-references = true
-
-[tool.hatch.version]
-source = "vcs"
-
-[tool.hatch.build.hooks.vcs]
-version-file = "_version.py"
