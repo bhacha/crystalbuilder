@@ -1,3 +1,10 @@
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("crystalbuilder")
+except PackageNotFoundError:
+    __version__ = "unknown"
+
 __all__ = ["convert", "geometry", "lattice", "vectors","bilbao", "viewer", "lumpy_convert"]
 
 

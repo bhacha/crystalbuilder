@@ -1,11 +1,12 @@
 [build-system]
-requires = ["setuptools >= 77.0.3"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling >= 1.26","hatch-vcs" ]
+build-backend = "hatchling.build"
 
 [project]
 name = "crystalbuilder"
 authors = [{name = "Brandon Hacha"}]
-dynamic = ["version", "description"]
+dynamic = ["version"]
+description= "A package for building 3D photonic crystals"
 readme = "README.rst"
 dependencies = [
     "numpy",
@@ -18,3 +19,12 @@ dependencies = [
 [project.optional-dependencies]
 full = ['tidy3d']
 
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "_version.py"
