@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "crystalbuilder"
 authors = [{name = "Brandon Hacha"}]
 dynamic = ["version"]
-description= "A package for building 3D photonic crystals"
+description= 'A package for building 3D photonic crystals'
 readme = "README.rst"
 dependencies = [
     "numpy",
