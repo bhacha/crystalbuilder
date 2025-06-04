@@ -1,17 +1,16 @@
 import numpy as np
 from crystalbuilder import lattice as lat
 from crystalbuilder import geometry as geo
+from crystalbuilder import lumpy_convert as lc
 import platform
 if platform.system() == 'Windows':
     pass
 else:
     import meep as mp
 
-
-
 #import tidy3d as td
 try:
-    import lumpy.simobjects as lp
+    import lumpy.simobjects as so
 except ModuleNotFoundError:
     pass
 debug = "off"
@@ -318,6 +317,7 @@ def geo_to_tidy3d(geometry_object, material):
         medium = td.Medium(permittivity = material**2, name="DielectricMaterial")
     return td.Structure(geometry=geometry_group, medium=medium, name="Structure Group")
 
+
 def _geo_to_lumerical(geometry_object, material):
     """
     Converts Geometry object to list of lumerical objects
@@ -326,12 +326,15 @@ def _geo_to_lumerical(geometry_object, material):
 
     """
 
-    #get index from meep material
-    if isinstance(material, mp.Medium):
-        index = np.sqrt(material.epsilon_diag[0])
-    else:
+    #get index from meep material, but treat it as a dielectric constant otherwise
+    try:
+        if isinstance(material, mp.Medium):
+            index = np.sqrt(material.epsilon_diag[0])
+        else:
+            index = material
+    except NameError:
         index = material
-
+        
     geom_list = []
     try:
         for m in geometry_object:
@@ -342,13 +345,12 @@ def _geo_to_lumerical(geometry_object, material):
 
             elif isinstance(m, geo.Cylinder):
                 if debug=="on": print("This is running the iterable cylinder")
-                lmgeom = lp.Cylinder(radius=m.radius, height=m.height, center=tuple(flatten(m.center)), material="dielectric", index=index)
+                lmgeom = lc.convert_cylinder(m, material='dielectric', index=index)
                 geom_list.append(lmgeom)
 
             elif isinstance(m, geo.Triangle):
                 if debug=="on": print("This is running the iterable Triangle")
-                print(m.vertices)
-                lmgeom = lp.Prism(vertices=m.vertices, z_span=m.height, center=tuple(flatten(m.center)), material="dielectric", index=index)
+                lmgeom = lc.convert_prism(m, material='dielectric', index=index)
                 geom_list.append(lmgeom)
 
     except TypeError:
@@ -362,16 +364,13 @@ def _geo_to_lumerical(geometry_object, material):
             elif isinstance(geometry_object, geo.Cylinder):
                 m = geometry_object
                 if debug=="on": print("This is creating a single cylinder named")
-                lmgeom = lp.Cylinder(radius=m.radius, height=m.height, center=tuple(flatten(m.center)), material="dielectric", index=index)
+                lmgeom = lmgeom = lc.convert_cylinder(m, material='dielectric', index=index)
                 geom_list.append(lmgeom)
 
             elif isinstance(geometry_object, geo.Triangle):
                 m = geometry_object
                 if debug=="on": print("This is running the single Triangle")
-                print(m.vertices)
-                verts = m.vertices[:, 0:2]
-                print(verts)
-                lmgeom = lp.Prism(vertices=verts, z_span=m.height, center=tuple(flatten(m.center)), material="dielectric", index=index)
+                lmgeom = lc.convert_prism(m, material='dielectric', index=index)
                 geom_list.append(lmgeom)
 
 
@@ -418,8 +417,6 @@ def to_mpb_lattice(geolattice):
     -------
     mpblattice : mp.Lattice()
         mpb/MEEP lattice object
-
-
     """
 
     if isinstance(geolattice, lat.Lattice):

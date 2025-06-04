@@ -147,11 +147,14 @@ def get_coordinates(groupnum, origin, output_array=True):
         linear_product = np.matmul(linear_part, position_vector)  #matrix part
         transformation = linear_product + translation_part #affine transformation
         new_point = transformation.reshape(1,3) #make row matrix
-        
-        if output_array==True:
-            coordinate_array = np.concatenate([coordinate_array, new_point], axis=0)
+        if ((new_point.all() <= 1) and (new_point.all() >= 0)):
+            if output_array==True:
+                coordinate_array = np.concatenate([coordinate_array, new_point], axis=0)
+            else:
+                coordinate_list.append(new_point.tolist()) #add point to list
         else:
-            coordinate_list.append(new_point.tolist()) #add point to list
+            continue
+        
 
     if output_array == True:
         return coordinate_array
@@ -187,7 +190,7 @@ class SpaceGroup():
         kwargs
         -------
         points : list, ndarray
-            Initial coordinates that will be operated on by the symmetry operations to create the entire unit cell
+            Initial coordinates that will be operated on by the symmetry operations to create the entire unit cell.
         
         """
         
@@ -202,7 +205,21 @@ class SpaceGroup():
         self.generated_points = self.calculate_points(self.point_list)
 
     def calculate_points(self, point_list):
-        generated_points = np.array([]).reshape(0,3)
+        """
+        Return a list of coordinates resulting from symmetry operations to each point in `point_list`. This is called once if the `SpaceGroup` is initialized with the `points` kwarg.
+        It can be called any number of times to directly return points from new `point_list` inputs.
+        
+        Parameter
+        ----------
+        point_list : tuple, list, ndarray
+            point(s) on which to perform symmetry operations
+            
+        Return
+        -------
+        generated_points : ndarray
+            Unique points resulting from the symmetry operations on points in point_list. This includes negative values and values greater than 1 (outside the primitive cell).
+        """
+        generated_points = np.array([]).reshape(-1,3)
         if point_list is not None:
             if isinstance(point_list, (list, np.ndarray)):
                 for n in point_list:
@@ -222,16 +239,16 @@ class SpaceGroup():
         
 
 if __name__ == "__main__":
-    # from matplotlib import pyplot as plt
+    from matplotlib import pyplot as plt
 
-    # testvert1 = get_coordinates(81, [.25, .75,0])
-    # testvert2 = get_coordinates(81, [0,.25,0])
-    # testvert3 = get_coordinates(81, [.75,.25,0])
-    # xverts = np.concatenate((testvert1[:,0],testvert2[:,0], testvert3[:,0]))
-    # yverts = np.concatenate((testvert1[:,1],testvert2[:,1], testvert3[:,1]))
-    # plt.scatter(xverts, yverts)
 
-    # plt.gca().set_aspect('equal')
-
-    crystest = SpaceGroup(230, points =[(.1, .4, 0), (.3, .5, 0)])
-    print(crystest.generated_points)
+    crystest = SpaceGroup(227)
+    pointlist = crystest.calculate_points([(0,0,0)])
+    print(pointlist)
+    print(pointlist.shape)
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    
+    ax.scatter(pointlist[:, 0], pointlist[:, 1], pointlist[:,2])
+    plt.show()

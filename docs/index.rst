@@ -6,26 +6,13 @@
 CrystalBuilder documentation
 ============================
 
-This is Sphinx-generated documentation for the crystalbuilder package, designed for generating 2D and 3D photonic crystals. 
 
-Examples
---------
+
+
 .. toctree::
-   :maxdepth: 1
-   :caption: Examples
+   :maxdepth: 2
+   :caption: Contents:
 
-   source/diamond_examples
-
-
-API
----
-.. toctree::
-   :maxdepth: 1
-   :caption: API Documentation
-
-   source/bilbao
-   source/convert
-   source/geometry
-   source/lattice
-   source/vectors
-   
+   Home <self>
+   Getting Started <source/getting_started>
+   Interface <source/crystalbuilder>
