@@ -190,7 +190,7 @@ class SpaceGroup():
         kwargs
         -------
         points : list, ndarray
-            Initial coordinates that will be operated on by the symmetry operations to create the entire unit cell
+            Initial coordinates that will be operated on by the symmetry operations to create the entire unit cell.
         
         """
         
@@ -205,6 +205,20 @@ class SpaceGroup():
         self.generated_points = self.calculate_points(self.point_list)
 
     def calculate_points(self, point_list):
+        """
+        Return a list of coordinates resulting from symmetry operations to each point in `point_list`. This is called once if the `SpaceGroup` is initialized with the `points` kwarg.
+        It can be called any number of times to directly return points from new `point_list` inputs.
+        
+        Parameter
+        ----------
+        point_list : tuple, list, ndarray
+            point(s) on which to perform symmetry operations
+            
+        Return
+        -------
+        generated_points : ndarray
+            Unique points resulting from the symmetry operations on points in point_list. This includes negative values and values greater than 1 (outside the primitive cell).
+        """
         generated_points = np.array([]).reshape(-1,3)
         if point_list is not None:
             if isinstance(point_list, (list, np.ndarray)):
