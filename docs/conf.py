@@ -36,3 +36,4 @@ autodoc_mock_imports = ['numpy', 'matplotlib', 'tidy3d', 'meep', 'mpb', 'bs4', '
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+html_sidebars = { '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'] }
