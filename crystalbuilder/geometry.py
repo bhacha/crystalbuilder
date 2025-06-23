@@ -720,34 +720,36 @@ class eqTriangle(Triangle):
 
         Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center)
 
-class NearestNeighbors:
+
+def NearestNeighbors(points, radius, neighborhood_range):
     """
     Connect nearest neighbors in a list of points with cylinders
-    """
-    def __init__(self,
-                points,
-                radius,
-                neighborhood_range):
+
+    Parameters
+    -----------
+
+    points : list of (x,y,z) tuples
+        Positions to search for neighbors within
         
-        self.neighborhood = neighborhood_range
-        self.points = points
-        self.radius = radius
-        neighbors = self.find_neighbors()
-        self.structure_list = self.connect_neighbors(neighbor_pairs=neighbors)
-    
-    def find_neighbors(self):
-        self.pointarr = np.asarray(self.points)
-        self.kdtree = scs.KDTree(self.pointarr, leafsize=15, compact_nodes=True)
-        neighbors = self.kdtree.query_pairs(r=self.neighborhood, p=2)
-        return neighbors
-    
-    def connect_neighbors(self, neighbor_pairs):
-        structure_list = []
-        for pair in neighbor_pairs:
-            point = self.pointarr[pair[0]]
-            neighbor = self.pointarr[pair[1]]
-            structure_list.append(Cylinder.from_vertices([point, neighbor], radius=self.radius))
-        return structure_list
+    radius : float
+        radius of connecting rods
+        
+    neighborhood : float
+        distance to define neighbors
+
+    """
+    pointarr = np.asarray(points)
+    kdtree = scs.KDTree(pointarr, leafsize=15, compact_nodes=True)
+    neighbors = kdtree.query_pairs(r=neighborhood_range, p=2)
+    structure_list = []
+    for pair in neighbors:
+        point = pointarr[pair[0]]
+        neighbor = pointarr[pair[1]]
+        structure_list.append(Cylinder.from_vertices([point, neighbor], radius=radius))
+    return structure_list
+
+
+
 
 if __name__ == "__main__":
     rng = np.random.default_rng()

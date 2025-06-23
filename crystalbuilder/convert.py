@@ -417,8 +417,6 @@ def to_mpb_lattice(geolattice):
     -------
     mpblattice : mp.Lattice()
         mpb/MEEP lattice object
-
-
     """
 
     if isinstance(geolattice, lat.Lattice):

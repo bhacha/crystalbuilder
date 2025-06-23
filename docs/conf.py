@@ -22,7 +22,8 @@ release = '0.3.1'
 
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon']
+    'sphinx.ext.napoleon',
+    'sphinx.ext.autosummary']
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
@@ -35,3 +36,4 @@ autodoc_mock_imports = ['numpy', 'matplotlib', 'tidy3d', 'meep', 'mpb', 'bs4', '
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+html_sidebars = { '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'] }
