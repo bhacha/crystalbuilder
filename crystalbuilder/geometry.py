@@ -14,8 +14,6 @@ class Structure():
     ):
         pass
 
-    
-
 class SuperCell():
     """
     Takes other geometry objects and groups them into one supercell object (akin to list) that can be passed to the methods in lattice.py
@@ -466,9 +464,12 @@ class Cylinder(Structure):
 
     def copy(self, **kwargs):
         """
-         kwargs
-        -----------
+        Copy and optionally change the values of the cylinder
+
+        Keyword Args
+        -------------
         'center' : 3-list of new center for copied object
+
         'radius' : float of new radius for copied object        
 
         """
@@ -507,8 +508,8 @@ class Sphere(Structure):
 
     def copy(self, **kwargs):
         """
-            kwargs
-        -----------
+        Keyword Args
+        ------------
         center : 3-list of new center for copied object
         radius : float of new radius for copied object        
 

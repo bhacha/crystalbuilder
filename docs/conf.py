@@ -15,7 +15,7 @@ print(sys.executable)
 project = 'CrystalBuilder'
 copyright = '2025, Brandon Hacha'
 author = 'bhacha'
-release = '0.0.5'
+release = '0.3.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -27,7 +27,7 @@ extensions = ['sphinx.ext.autodoc',
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-autodoc_mock_imports = ['numpy', 'matplotlib', 'tidy3d', 'meep', 'mpb', 'bs4']
+autodoc_mock_imports = ['numpy', 'matplotlib', 'tidy3d', 'meep', 'mpb', 'bs4', 'vedo', 'scipy']
 
 
 # -- Options for HTML output -------------------------------------------------

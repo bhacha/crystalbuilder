@@ -1,22 +1,25 @@
 Submodules
 ==========
 
-The Bilbao Crystallographic Server Connection
-----------------------------------------------
 
-.. automodule:: crystalbuilder.bilbao
-   :members:
-   :undoc-members:
-   :show-inheritance:
+The CrystalBuilder package contains 5 total modules. 
 
-Conversion Methods
------------------------------
+* :ref:`geometry <geometry_docs>`
+   * Objects for defining unit cells
 
-.. automodule:: crystalbuilder.convert
-   :members:
-   :undoc-members:
-   :show-inheritance:
+* :ref:`lattice <lattice_docs>`
+   * Methods for tiling unit cells or geometries
 
+* :ref:`convert <convert_docs>`
+   * Methods for converting CrystalBuilder objects to MPB, MEEP, etc.
+
+* :ref:`bilbao <bilbao_docs>`
+   * Interface to pull positions from Bilbao servers. 
+
+* :ref:`vectors <vector_docs>`
+   * Methods for manipulating vectors. This is probably not necessary for most general uses.
+
+.. _geometry_docs: 
 Geometry
 ------------------------------
 
@@ -25,6 +28,7 @@ Geometry
    :undoc-members:
    :show-inheritance:
 
+.. _lattice_docs:
 Lattice
 -----------------------------
 
@@ -33,6 +37,25 @@ Lattice
    :undoc-members:
    :show-inheritance:
 
+.. _convert_docs:
+Conversion Methods
+-----------------------------
+
+.. automodule:: crystalbuilder.convert
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. _bilbao_docs:
+The Bilbao Crystallographic Data
+----------------------------------------------
+
+.. automodule:: crystalbuilder.bilbao
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. _vector_docs:
 Vector Tools
 -----------------------------
 
