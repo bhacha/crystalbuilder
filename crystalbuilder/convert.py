@@ -1,4 +1,5 @@
 import numpy as np
+from crystalbuilder.conversions.t3d import geo_to_tidy3d
 from crystalbuilder import lattice as lat
 from crystalbuilder import geometry as geo
 from crystalbuilder import lumpy_convert as lc
@@ -8,7 +9,6 @@ if platform.system() == 'Windows':
 else:
     import meep as mp
 
-#import tidy3d as td
 try:
     import lumpy.simobjects as so
 except ModuleNotFoundError:
@@ -58,7 +58,8 @@ def unpack_supercell(supercell):
 def flatten(list):
     """ Some of these methods can accidentally create nested lists, so this function can be used in try statements to correct those """
     try:
-        flat_list = [item for sublist in list for item in sublist]
+        if isinstance(list, list):
+            flat_list = [item for sublist in list for item in sublist]
     except:
         flat_list = list
     return flat_list
@@ -245,79 +246,6 @@ def geo_to_mpb(geometry_object, material, lattice):
     mpb_list = flatten(newlist)
     return mpb_list
 
-def _geo_to_tidy3d(geometry_object, material, **kwargs):
-    """Converts geometry object (or supercell) to the Tidy3D equivalent. Note that Tidy3D values always include units (microns by default).
-
-    Tidy3D geometries are combined with a specified medium to create a Tidy3D structure object, which can be given a unique name. For now, the naming will be systematic. This might be changed in the future via kwargs.
-
-    The material assignment will occur after all of the geometries have been made. This means a td.GeometryGroup object will be created and made into a structure.
-     """
-
-    geom_list = []
-    try:
-        for m in geometry_object:
-            if isinstance(m, geo.SuperCell):
-                if debug=="on": print("This is running the iterable Supercell")
-                innerlist = _geo_to_tidy3d(m, material)
-                geom_list.append(innerlist)
-
-            elif isinstance(m, geo.Cylinder):
-                if debug=="on": print("This is running the iterable cylinder")
-                tdgeom = td.Cylinder(radius=m.radius, axis= 2, length=m.height, center=tuple(flatten(m.center)))
-                geom_list.append(tdgeom)
-
-    except TypeError:
-            if isinstance(geometry_object, geo.SuperCell):
-                if debug=="on": print("This is running the single Supercell")
-                structs = unpack_supercell(geometry_object)
-                m = structs
-                newlist = _geo_to_tidy3d(m, material)
-                geom_list.append(newlist)
-
-            elif isinstance(geometry_object, geo.Cylinder):
-                m = geometry_object
-                if debug=="on": print("This is creating a single cylinder named")
-                tdgeom = td.Cylinder(radius=m.radius, axis= 2, length=m.height, center=tuple(flatten(m.center)))
-                geom_list.append(tdgeom)
-
-
-    return geom_list
-
-def geo_to_tidy3d(geometry_object, material):
-    """Converts CrystalBuilder geometry object(s) to the corresponding Tidy3D object(s) with defined medium. 
-    
-    
-    `material` can be either a td.Medium() object or a float corresponding to the refractive index of the desired Medium.
-
-    This is a higher level wrapper of the _geo_to_tidy3d function, which I have yet to document
-
-    Parameters
-    ------------
-    geometry_object : Geometry or list of Geometry
-        an object or list of objects
-    material : td.Medium() or float
-        Tidy3D Medium or the refractive index that will be assigned to the material.
-
-
-
-    Returns
-    ------------
-    td.Structure()
-        a Tidy3D structure group with defined Medium
-
-    """
-
-    geometry_list = flatten(flatten(_geo_to_tidy3d(geometry_object, material)))
-    print(geometry_list)
-    geometry_group = td.GeometryGroup(geometries = tuple(geometry_list))
-
-    if isinstance(material, td.Medium):
-        medium = material
-    else:
-        medium = td.Medium(permittivity = material**2, name="DielectricMaterial")
-    return td.Structure(geometry=geometry_group, medium=medium, name="Structure Group")
-
-
 def _geo_to_lumerical(geometry_object, material):
     """
     Converts Geometry object to list of lumerical objects
@@ -432,15 +360,20 @@ def to_mpb_lattice(geolattice):
 if __name__ == '__main__':
     """testing code"""
 
-    mat1 = mp.Medium(epsilon=4)
-    geometry_lattice = mp.Lattice(size=mp.Vector3(1, 1),
-                        basis1=mp.Vector3(np.sqrt(3) / 2, 0.5),
-                        basis2=mp.Vector3(0,0.5))
+    # mat1 = mp.Medium(epsilon=4)
+    # geometry_lattice = mp.Lattice(size=mp.Vector3(1, 1),
+    #                     basis1=mp.Vector3(np.sqrt(3) / 2, 0.5),
+    #                     basis2=mp.Vector3(0,0.5))
 
-    tri = geo.eqTriangle(1, .5)
-    print(tri.vertices.shape)
-    print(type(tri))
+    # tri = geo.eqTriangle(1, .5)
+    # print(tri.vertices.shape)
+    # print(type(tri))
     
-    newgeo = _geo_to_lumerical(tri, mat1)
+    # newgeo = _geo_to_lumerical(tri, mat1)
 
-    print(newgeo[0].out())
+    # print(newgeo[0].out())
+
+    
+    cylinder = geo.Cylinder.from_vertices([[0,0,0], [1,1,1]], radius=.2)
+    cylinder2 = geo.Cylinder(center=[1,1,0], radius=.1, height=3, axis=2)
+    newgeo = geo_to_tidy3d([cylinder, cylinder2], material=3)
