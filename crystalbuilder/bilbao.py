@@ -184,9 +184,7 @@ def get_coordinates(groupnum, origin, output_array=True):
     coordinate_list = []
     coordinate_array = np.array([]).reshape(0,3)
     for n in matrix_list:
-        
         n = np.asarray(n)
-        print(f"Here {n}")
         linear_part, translation_part = np.split(n, [3,], axis=1) #Split matrix into linear part and translation part, *after* third element in row
         #linear_part is 3x3, translation_part is 3x1
         linear_product = np.matmul(linear_part, position_vector)  #matrix part
@@ -287,13 +285,13 @@ if __name__ == "__main__":
     from matplotlib import pyplot as plt
 
 
-    crystest = SpaceGroup(227)
-    pointlist = crystest.calculate_points([(0,0,0)])
-    print(pointlist)
-    print(pointlist.shape)
+    # crystest = SpaceGroup(227)
+    # pointlist = crystest.calculate_points([(0,0,0)])
+    # print(pointlist)
+    # print(pointlist.shape)
     
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
+    # fig = plt.figure()
+    # ax = fig.add_subplot(projection='3d')
     
-    ax.scatter(pointlist[:, 0], pointlist[:, 1], pointlist[:,2])
-    plt.show()
+    # ax.scatter(pointlist[:, 0], pointlist[:, 1], pointlist[:,2])
+    # plt.show()

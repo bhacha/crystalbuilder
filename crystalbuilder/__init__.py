@@ -10,8 +10,6 @@ __all__ = ["convert", "geometry", "lattice", "vectors","bilbao", "viewer", "conv
 
 
 
-
-
 """
 CrystalBuilder allows building triangle and cylinder based photonic crystal lattices for MEEP, MPB, and Tidy3D.
 

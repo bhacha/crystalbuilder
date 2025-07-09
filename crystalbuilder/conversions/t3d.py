@@ -51,7 +51,6 @@ def rotate_to(orientation, v1 = [0,0,1]):
     rot_axis = rot_axis_unnorm/s_angle
     c_angle = np.dot(v1, orientation)
     rotmat2 = Transformed.rotation(s_angle, (rot_axis[0], rot_axis[1], rot_axis[2]))
-    print(f"rotmat2: {rotmat2}")
 
     # print(s_angle)
     # print(c_angle)
@@ -63,16 +62,11 @@ def rotate_to(orientation, v1 = [0,0,1]):
     )
 
     rot_mat = eyemat + (s_angle * skew_mat) + ((1-c_angle)*(skew_mat@skew_mat))
-    print(f"{(s_angle * skew_mat)}\n")
-
-    print(f"{(1-c_angle)*(skew_mat@skew_mat)}\n")
-
-    print(f"Determinant: {np.linalg.det(rot_mat)}")
     #Tidy3D takes an affine transformation matrix. So we'll pad it to 4x4 with zeros and a 1 in the bottom corner
     
     rot_mat = np.pad(rot_mat, (0,1))
     rot_mat[3,3] = 1
-    rot_mat = rotmat2
+    # rot_mat = rotmat2
     return rot_mat
 
 def _convert_cyl(geometry_object, material):
@@ -80,8 +74,7 @@ def _convert_cyl(geometry_object, material):
     m = geometry_object
     rot_mat = rotate_to(m.axis)
     shift_center = flatten(m.center)
-    rot_mat[:3, -1] = shift_center 
-    print(rot_mat)
+    rot_mat[:3, -1] = shift_center
     tdgeom = Transformed(geometry = Cylinder(radius=m.radius, axis= 2, length=m.height, center=[0,0,0]), transform=rot_mat)
     return tdgeom
 
@@ -148,7 +141,6 @@ def geo_to_tidy3d(geometry_object, material):
     geometry_list_raw = _geo_to_tidy3d(geometry_object, material)
     geometry_list =geometry_list_raw
     geometry_group = GeometryGroup(geometries = tuple(geometry_list))
-    print(geometry_group)
     if isinstance(material, Medium):
         medium = material
     else:

@@ -721,7 +721,7 @@ class eqTriangle(Triangle):
         Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center)
 
 
-def NearestNeighbors(points, radius, neighborhood_range):
+def NearestNeighbors(points, radius, neighborhood_range, a_mag):
     """
     Connect nearest neighbors in a list of points with cylinders
 
@@ -743,8 +743,8 @@ def NearestNeighbors(points, radius, neighborhood_range):
     neighbors = kdtree.query_pairs(r=neighborhood_range, p=2)
     structure_list = []
     for pair in neighbors:
-        point = pointarr[pair[0]]
-        neighbor = pointarr[pair[1]]
+        point = pointarr[pair[0]] * a_mag
+        neighbor = pointarr[pair[1]] *a_mag
         structure_list.append(Cylinder.from_vertices([point, neighbor], radius=radius))
     return structure_list
 
