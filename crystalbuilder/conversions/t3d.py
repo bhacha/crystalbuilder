@@ -1,5 +1,6 @@
 
 import numpy as np
+from tidy3d import Transformed, Structure, GeometryGroup, Cylinder, Medium, Simulation, PointDipole, C_0, GridSpec, GaussianPulse
 try:
     from tidy3d import Transformed, Structure, GeometryGroup, Cylinder, Medium, Simulation, PointDipole, C_0, GridSpec, GaussianPulse
 except ModuleNotFoundError:
@@ -45,10 +46,12 @@ def rotate_to(orientation, v1 = [0,0,1]):
     eyemat = np.identity(3)
     
     
-    rot_axis_unnorm = np.cross(orientation, v1)
+    rot_axis_unnorm = np.cross(v1, orientation)
     s_angle = np.linalg.norm(rot_axis_unnorm)
     rot_axis = rot_axis_unnorm/s_angle
-    c_angle = np.dot(orientation, v1)
+    c_angle = np.dot(v1, orientation)
+    rotmat2 = Transformed.rotation(s_angle, (rot_axis[0], rot_axis[1], rot_axis[2]))
+    print(f"rotmat2: {rotmat2}")
 
     # print(s_angle)
     # print(c_angle)
@@ -65,16 +68,21 @@ def rotate_to(orientation, v1 = [0,0,1]):
     print(f"{(1-c_angle)*(skew_mat@skew_mat)}\n")
 
     print(f"Determinant: {np.linalg.det(rot_mat)}")
-    #Tidy3D takes an affine transformation matrix, but we won't use this method for doing translations. So we're going to hard-code this.
-
+    #Tidy3D takes an affine transformation matrix. So we'll pad it to 4x4 with zeros and a 1 in the bottom corner
+    
     rot_mat = np.pad(rot_mat, (0,1))
     rot_mat[3,3] = 1
+    rot_mat = rotmat2
     return rot_mat
 
 def _convert_cyl(geometry_object, material):
+    """ Put the structure at the origin, do the rotation, then shift it to the correct spot."""
     m = geometry_object
     rot_mat = rotate_to(m.axis)
-    tdgeom = Transformed(geometry = Cylinder(radius=m.radius, axis= 1, length=m.height, center=tuple(flatten(m.center))), transform=rot_mat)
+    shift_center = flatten(m.center)
+    rot_mat[:3, -1] = shift_center 
+    print(rot_mat)
+    tdgeom = Transformed(geometry = Cylinder(radius=m.radius, axis= 2, length=m.height, center=[0,0,0]), transform=rot_mat)
     return tdgeom
 
 def _geo_to_tidy3d(geometry_object, material, **kwargs):
@@ -151,9 +159,8 @@ def geo_to_tidy3d(geometry_object, material):
 if __name__ == '__main__':
     """testing code"""
 
-    cylinder = geo.Cylinder.from_vertices([[0,0,0], [1,0,0]], radius=.1)
-    cylinder2 = geo.Cylinder.from_vertices([[0,0,0], [1,1,1]], radius=.2)
-    newgeo = geo_to_tidy3d([cylinder, cylinder2], material=3)
+    cylinder = geo.Cylinder.from_vertices([[0,0,0], [3,0,0]], radius=.1)
+    newgeo = geo_to_tidy3d([cylinder, cylinder], material=3)
 
     def view_structures(geometry):
         # create source

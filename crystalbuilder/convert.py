@@ -2,7 +2,7 @@ import numpy as np
 from crystalbuilder.conversions.t3d import geo_to_tidy3d
 from crystalbuilder import lattice as lat
 from crystalbuilder import geometry as geo
-from crystalbuilder import lumpy_convert as lc
+from crystalbuilder.conversions import lumc as lc
 import platform
 if platform.system() == 'Windows':
     pass
