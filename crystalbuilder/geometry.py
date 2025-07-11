@@ -721,7 +721,7 @@ class eqTriangle(Triangle):
         Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center)
 
 
-def NearestNeighbors(points, radius, neighborhood_range, a_mag):
+def NearestNeighbors(points, radius, neighborhood_range, a_mag=1.0):
     """
     Connect nearest neighbors in a list of points with cylinders
 
@@ -755,4 +755,5 @@ if __name__ == "__main__":
     rng = np.random.default_rng()
     points = rng.random((15, 3))
 
-    test = NearestNeighbors(points, radius=.5, neighborhood_range=.3)
+    test = NearestNeighbors(points, radius=.5, neighborhood_range=.3, a_mag=1)
+    print(isinstance(test[0], Structure))

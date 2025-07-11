@@ -115,7 +115,7 @@ def _geo_to_tidy3d(geometry_object, material, **kwargs):
 
     return geom_list
 
-def geo_to_tidy3d(geometry_object, material):
+def geo_to_tidy3d(geometry_object, material, name="Structure Group"):
     """Converts CrystalBuilder geometry object(s) to the corresponding Tidy3D object(s) with defined medium. 
     
     
@@ -146,7 +146,7 @@ def geo_to_tidy3d(geometry_object, material):
     else:
         medium = Medium(permittivity = material**2, name="DielectricMaterial")
 
-    return Structure(geometry=geometry_group, medium=medium, name="Structure Group")
+    return Structure(geometry=geometry_group, medium=medium, name=name)
 
 if __name__ == '__main__':
     """testing code"""
