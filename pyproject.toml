@@ -23,7 +23,7 @@ dependencies = [
     "numpy",
     "matplotlib",
     "vedo",
-    "pymeep; platform_system=='Linux'",
+    "pymeep;sys.platform=='linux'",
     "beautifulsoup4"
 ]
 
