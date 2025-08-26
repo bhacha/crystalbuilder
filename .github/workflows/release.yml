@@ -30,4 +30,4 @@ jobs:
       run: |
         python version.py
         python -m build
-        twine upload dist/*
+        twine upload --repository pypi dist/*
