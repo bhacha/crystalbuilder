@@ -170,4 +170,4 @@ cython_debug/
 
 
 crystalbuilder/version.py
-examples/Tidy3D/*
+examples/Tidy3D/
