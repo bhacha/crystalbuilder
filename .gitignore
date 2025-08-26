@@ -169,6 +169,8 @@ cython_debug/
 *.obj
 *.stl
 *.json
+crystalbuilder/examples/Tidy3D
+crystalbuilder/examples/OtherPhCs/*.ipynb
 
 
 crystalbuilder/version.py
