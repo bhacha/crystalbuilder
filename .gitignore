@@ -166,12 +166,8 @@ cython_debug/
 #.idea/
 
 *.hdf5
-*.obj
-*.stl
 *.json
-
-examples/Tidy3D
-examples/OtherPhCs/*.ipynb
 
 
 crystalbuilder/version.py
+examples/Tidy3D/*
