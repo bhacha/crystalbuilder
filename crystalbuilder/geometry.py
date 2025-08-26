@@ -14,8 +14,6 @@ class Structure():
     ):
         pass
 
-    
-
 class SuperCell():
     """
     Takes other geometry objects and groups them into one supercell object (akin to list) that can be passed to the methods in lattice.py
@@ -466,9 +464,12 @@ class Cylinder(Structure):
 
     def copy(self, **kwargs):
         """
-         kwargs
-        -----------
+        Copy and optionally change the values of the cylinder
+
+        Keyword Args
+        -------------
         'center' : 3-list of new center for copied object
+
         'radius' : float of new radius for copied object        
 
         """
@@ -507,8 +508,8 @@ class Sphere(Structure):
 
     def copy(self, **kwargs):
         """
-            kwargs
-        -----------
+        Keyword Args
+        ------------
         center : 3-list of new center for copied object
         radius : float of new radius for copied object        
 
@@ -720,7 +721,7 @@ class eqTriangle(Triangle):
         Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center)
 
 
-def NearestNeighbors(points, radius, neighborhood_range):
+def NearestNeighbors(points, radius, neighborhood_range, a_mag=1.0):
     """
     Connect nearest neighbors in a list of points with cylinders
 
@@ -742,8 +743,8 @@ def NearestNeighbors(points, radius, neighborhood_range):
     neighbors = kdtree.query_pairs(r=neighborhood_range, p=2)
     structure_list = []
     for pair in neighbors:
-        point = pointarr[pair[0]]
-        neighbor = pointarr[pair[1]]
+        point = pointarr[pair[0]] * a_mag
+        neighbor = pointarr[pair[1]] *a_mag
         structure_list.append(Cylinder.from_vertices([point, neighbor], radius=radius))
     return structure_list
 
@@ -754,4 +755,5 @@ if __name__ == "__main__":
     rng = np.random.default_rng()
     points = rng.random((15, 3))
 
-    test = NearestNeighbors(points, radius=.5, neighborhood_range=.3)
+    test = NearestNeighbors(points, radius=.5, neighborhood_range=.3, a_mag=1)
+    print(isinstance(test[0], Structure))

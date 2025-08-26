@@ -312,15 +312,19 @@ class Lattice:
         elif isinstance(Geometry, list):
             if vm.debug == 'on': print("Lat: Geometry is a list")
             for n in Geometry:
-                xcen = n.center[0]
-                ycen = n.center[1]
-                zcen = n.center[2]
-            
-                tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            
-                for m in range(0,len(tiledpoints)):
-                    newstruct = n.copy(center=tiledpoints[m])
-                    newgeom.append(newstruct)
+                if isinstance(n, geometry.Structure):
+                    xcen = n.center[0]
+                    ycen = n.center[1]
+                    zcen = n.center[2]
+                
+                    tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
+                
+                    for m in range(0,len(tiledpoints)):
+                        newstruct = n.copy(center=tiledpoints[m])
+                        newgeom.append(newstruct)
+                else:
+                    sublist = self.tile_geogeometry(n, a1reps, a2reps, a3reps)
+                    newgeom.append(sublist)
 
         elif isinstance(Geometry, geometry.SuperCell):
             if debug == 'on': print("Lat: Geometry is a SuperCell")
