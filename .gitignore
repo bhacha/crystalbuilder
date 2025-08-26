@@ -170,7 +170,7 @@ cython_debug/
 *.stl
 *.json
 
-crystalbuilder/examples/Tidy3D
+crystalbuilder/examples/Tidy3D/*
 crystalbuilder/examples/OtherPhCs/*.ipynb
 
 
