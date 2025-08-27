@@ -103,6 +103,23 @@ class Lattice:
         newpoint = vm.cart_to_pol(point)
         return newpoint
     
+    def output_basis_as_list(self):
+        basis_list = self.basis.tolist()
+        return basis_list
+    
+    def output_basis_as_Tmat(self):
+        """Output the basis as a 4x4 array for linear transformations. This pads the off diagonal elements with 0 and the diagonal [3,3] element with 1
+        
+        The advantage of this is that because crystal basis can be thought of as a shear transform of the cartesian basis, you can use this for linear transforms in other programs. 
+        """
+        transformation_matrix = np.pad(self.basis, ((0, 1), (0,1)), mode='constant', constant_values=0)
+        transformation_matrix[3,3] = 1
+        return transformation_matrix
+
+    def output_basis_as_Tmat_list(self):
+        trans_mat = self.output_basis_as_Tmat()
+        trans_list = trans_mat.tolist()
+        return trans_list
 
 ### Tiling Methods ###
     def tile_mpgeometry(self, VerticesList:list, a1reps:int, a2reps:int, a3reps:int, style='centered'):
@@ -786,10 +803,8 @@ class Lattice:
 
             
 
-
-
-
-
+if __name__ == "__main__":
+    print("test")
 
 
 

@@ -5,7 +5,7 @@ try:
 except PackageNotFoundError:
     __version__ = "unknown"
 
-__all__ = ["convert", "geometry", "lattice", "vectors","bilbao", "viewer", "conversions", "conversions"]
+__all__ = ['convert', 'geometry', 'lattice', 'vectors', 'bilbao','viewer']
 
 
 
