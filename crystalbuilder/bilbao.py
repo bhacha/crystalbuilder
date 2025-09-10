@@ -5,6 +5,10 @@ import os
 location = os.path.dirname(os.path.realpath(__file__))
 resources = os.path.join(location, 'resources')
 
+if os.path.exists(resources):
+    pass
+else:
+    os.makedirs(resources)
 import requests
 import numpy as np
 from bs4 import BeautifulSoup
@@ -24,8 +28,13 @@ def create_resource(filename, dictionary):
     for key, value in dictionary.items():
         if isinstance(value, np.ndarray):
             dictionary[key] = value.tolist()
-    with open(filename, 'w') as f:
-        json.dump(dictionary, f, indent=3)
+    try:
+        with open(filename, 'w') as f:
+            json.dump(dictionary, f, indent=3)
+    except Exception as e:
+        print(f"Cannot save {filename} resource file. Error: {type(e).__name__}")
+        
+        
         
 def get_kvectors(groupnum, dict_out=False):
     
