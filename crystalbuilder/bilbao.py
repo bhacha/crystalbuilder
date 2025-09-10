@@ -12,7 +12,6 @@ else:
 import requests
 import numpy as np
 from bs4 import BeautifulSoup
-import math
 import json
     
 
@@ -20,6 +19,7 @@ def check_resource(filename):
     if os.path.exists(filename):
         with open(filename) as f:
             kvec_dict = json.load(f)
+            kvec_dict.pop("_attribution")
         return kvec_dict
     else:
         return False
@@ -30,6 +30,9 @@ def create_resource(filename, dictionary):
             dictionary[key] = value.tolist()
     try:
         with open(filename, 'w') as f:
+            dictionary["_attribution"] = "This data was obtained from the Bilbao Crystallographic Server at www.cryst.ehu.es. Please cite the following: "\
+                                        "| M. I. Aroyo, J. M. Perez-Mato, C. Capillas, E. Kroumova, S. Ivantchev, G. Madariaga, A. Kirov & H. Wondratschek. 'Bilbao Crystallographic Server I: Databases and crystallographic computing programs'. Zeitschrift fuer Kristallographie (2006), 221, 1, 15-27. | and " \
+                                        "| M. I. Aroyo, A. Kirov, C. Capillas, J. M. Perez-Mato & H. Wondratschek. 'Bilbao Crystallographic Server II: Representations of crystallographic point groups and space groups'. Acta Cryst. (2006), A62, 115-128. |" 
             json.dump(dictionary, f, indent=3)
     except Exception as e:
         print(f"Cannot save {filename} resource file. Error: {type(e).__name__}")
