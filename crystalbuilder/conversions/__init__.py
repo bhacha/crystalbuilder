@@ -1,1 +1,2 @@
-__all__ = ["lumc", "t3d"]
+
+__all__ = ["lumc", "t3d", "model"]
