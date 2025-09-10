@@ -5,6 +5,7 @@ from crystalbuilder import geometry as geo
 from crystalbuilder.conversions import lumc as lc
 import platform
 if platform.system() == 'Windows':
+    print("You're using Windows, so you don't have access to the MEEP/MPB functions. Consider using Windows Subsystem for Linux.")
     pass
 else:
     import meep as mp
