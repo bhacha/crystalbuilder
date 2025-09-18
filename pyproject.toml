@@ -17,9 +17,11 @@ description= 'A package for building 3D photonic crystals'
 readme = "README.rst"
 dependencies = [
     "numpy",
+    "scipy",
     "matplotlib",
     "vedo",
     "beautifulsoup4"
+    "requests"
 ]
 
 [project.optional-dependencies]

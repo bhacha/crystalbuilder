@@ -1,6 +1,5 @@
 
 import numpy as np
-from tidy3d import Transformed, Structure, GeometryGroup, Cylinder, Medium, Simulation, PointDipole, C_0, GridSpec, GaussianPulse
 try:
     from tidy3d import Transformed, Structure, GeometryGroup, Cylinder, Medium, Simulation, PointDipole, C_0, GridSpec, GaussianPulse
 except ModuleNotFoundError:

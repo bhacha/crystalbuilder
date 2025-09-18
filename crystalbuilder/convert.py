@@ -3,8 +3,11 @@ from crystalbuilder.conversions.t3d import geo_to_tidy3d
 from crystalbuilder import lattice as lat
 from crystalbuilder import geometry as geo
 from crystalbuilder.conversions import lumc as lc
+from crystalbuilder.conversions import model
 import platform
+
 if platform.system() == 'Windows':
+    print("You're using Windows, so you don't have access to the MEEP/MPB functions. Consider using Windows Subsystem for Linux.")
     pass
 else:
     import meep as mp
@@ -14,6 +17,10 @@ try:
 except ModuleNotFoundError:
     pass
 debug = "off"
+
+def vedo_to_obj(list, filename):
+    model.combine_and_export(list, filename)
+    
 
 def vectorize(list):
     """Converts list of x,y,z coordinates to mp.Vector3 object
