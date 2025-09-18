@@ -7,7 +7,6 @@ allow-direct-references = true
 
 [tool.hatch.version]
 source = "vcs"
-raw-options = {search_parent_directories = true}
 
 
 [project]
@@ -21,8 +20,7 @@ dependencies = [
     "scipy",
     "matplotlib",
     "vedo",
-    "pymeep; platform_system=='Linux'",
-    "beautifulsoup4",
+    "beautifulsoup4"
     "requests"
 ]
 
