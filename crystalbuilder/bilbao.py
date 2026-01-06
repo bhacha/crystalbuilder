@@ -53,7 +53,7 @@ def get_kvectors(groupnum, dict_out=False):
         kvec_dictionary = localkdict
     else:
         save_file = True
-        URL = "https://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-kv-list"
+        URL = "http://webbdcrista2.ehu.es/cgi-bin/cryst/programs/nph-kv-list"
         page = requests.post(URL, data={'gnum': str(groupnum),'standard':'Optimized listing of k-vector types using ITA description'})
         soup = BeautifulSoup(page.content, "html.parser")
         kvec_table = soup.find_all('table')[1]
@@ -125,7 +125,7 @@ def get_genmat(groupnum):
         save_file = False
     else:
         save_file = True
-        URL = "https://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-getgen"
+        URL = "http://webbdcrista2.ehu.es/cgi-bin/cryst/programs/nph-getgen"
         page = requests.post(URL, data={'gnum': str(
             groupnum), 'what': 'gp', 'list': 'Standard/Default+Setting'})
         gen_pos = BeautifulSoup(page.content, "html.parser")
