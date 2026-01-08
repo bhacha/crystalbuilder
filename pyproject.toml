@@ -20,7 +20,7 @@ dependencies = [
     "scipy",
     "matplotlib",
     "vedo",
-    "beautifulsoup4"
+    "beautifulsoup4",
     "requests"
 ]
 

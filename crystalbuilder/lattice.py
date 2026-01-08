@@ -103,23 +103,6 @@ class Lattice:
         newpoint = vm.cart_to_pol(point)
         return newpoint
     
-    def output_basis_as_list(self):
-        basis_list = self.basis.tolist()
-        return basis_list
-    
-    def output_basis_as_Tmat(self):
-        """Output the basis as a 4x4 array for linear transformations. This pads the off diagonal elements with 0 and the diagonal [3,3] element with 1
-        
-        The advantage of this is that because crystal basis can be thought of as a shear transform of the cartesian basis, you can use this for linear transforms in other programs. 
-        """
-        transformation_matrix = np.pad(self.basis, ((0, 1), (0,1)), mode='constant', constant_values=0)
-        transformation_matrix[3,3] = 1
-        return transformation_matrix
-
-    def output_basis_as_Tmat_list(self):
-        trans_mat = self.output_basis_as_Tmat()
-        trans_list = trans_mat.tolist()
-        return trans_list
 
 ### Tiling Methods ###
     def tile_mpgeometry(self, VerticesList:list, a1reps:int, a2reps:int, a3reps:int, style='centered'):
@@ -329,19 +312,15 @@ class Lattice:
         elif isinstance(Geometry, list):
             if vm.debug == 'on': print("Lat: Geometry is a list")
             for n in Geometry:
-                if isinstance(n, geometry.Structure):
-                    xcen = n.center[0]
-                    ycen = n.center[1]
-                    zcen = n.center[2]
-                
-                    tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-                
-                    for m in range(0,len(tiledpoints)):
-                        newstruct = n.copy(center=tiledpoints[m])
-                        newgeom.append(newstruct)
-                else:
-                    sublist = self.tile_geogeometry(n, a1reps, a2reps, a3reps)
-                    newgeom.append(sublist)
+                xcen = n.center[0]
+                ycen = n.center[1]
+                zcen = n.center[2]
+            
+                tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
+            
+                for m in range(0,len(tiledpoints)):
+                    newstruct = n.copy(center=tiledpoints[m])
+                    newgeom.append(newstruct)
 
         elif isinstance(Geometry, geometry.SuperCell):
             if debug == 'on': print("Lat: Geometry is a SuperCell")
@@ -803,8 +782,10 @@ class Lattice:
 
             
 
-if __name__ == "__main__":
-    print("test")
+
+
+
+
 
 
 
