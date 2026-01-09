@@ -465,7 +465,7 @@ class Cylinder(Structure):
         vert1 = np.asarray(vertices[0])
         vert2 = np.asarray(vertices[1])
         if height_padding == False:
-            height = np.linalg.norm((vert2 - vert1))
+            height = np.linalg.norm((vert2 - vert1)) + np.linalg.norm((vert2-vert1))*.01
         else:
             height = np.linalg.norm((vert2 - vert1))+height_padding
 
