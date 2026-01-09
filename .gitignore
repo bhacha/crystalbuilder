@@ -173,3 +173,4 @@ crystalbuilder/version.py
 examples/Tidy3D/
 *.npy
 
+isolated/
