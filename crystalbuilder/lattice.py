@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 import ast
 from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
@@ -45,9 +46,9 @@ class Lattice:
 
     def __init__(
             self,
-            a1 = np.array([1,0,0]),
-            a2 = np.array([0,1,0]),
-            a3 = np.array([0,0,1]),
+            a1: npt.ArrayLike = np.array([1,0,0]),
+            a2: npt.ArrayLike= np.array([0,1,0]),
+            a3: npt.ArrayLike= np.array([0,0,1]),
             magnitude = np.array([1,1,1]),
             **kwargs):
         """
@@ -312,15 +313,19 @@ class Lattice:
         elif isinstance(Geometry, list):
             if vm.debug == 'on': print("Lat: Geometry is a list")
             for n in Geometry:
-                xcen = n.center[0]
-                ycen = n.center[1]
-                zcen = n.center[2]
-            
-                tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            
-                for m in range(0,len(tiledpoints)):
-                    newstruct = n.copy(center=tiledpoints[m])
-                    newgeom.append(newstruct)
+                if isinstance(n, geometry.Structure):
+                    xcen = n.center[0]
+                    ycen = n.center[1]
+                    zcen = n.center[2]
+                
+                    tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
+                
+                    for m in range(0,len(tiledpoints)):
+                        newstruct = n.copy(center=tiledpoints[m])
+                        newgeom.append(newstruct)
+                else:
+                    sublist = self.tile_geogeometry(n, a1reps, a2reps, a3reps)
+                    newgeom.append(sublist)
 
         elif isinstance(Geometry, geometry.SuperCell):
             if debug == 'on': print("Lat: Geometry is a SuperCell")
