@@ -5,41 +5,46 @@ import os
 location = os.path.dirname(os.path.realpath(__file__))
 resources = os.path.join(location, 'resources')
 
-if os.path.exists(resources):
-    pass
-else:
-    os.makedirs(resources)
 import requests
 import numpy as np
 from bs4 import BeautifulSoup
+import math
 import json
-    
+import crystalbuilder.housekeeping.types as cbt    
 
-def check_resource(filename):
+Literal = cbt.Literal
+Iterable = cbt.Iterable
+vector_type = cbt.vector_type
+angle_unit_type = cbt.angle_unit_type
+scalar = cbt.number
+array = cbt.array
+matrix_like = cbt.matrix_like
+
+bilbao_url = "https://cryst.ehu.es/"
+
+# cookie_dict = {"turnstile_passed": '1767991980'}
+
+def check_resource(filename:str) -> dict | Literal[False]:
     if os.path.exists(filename):
         with open(filename) as f:
             kvec_dict = json.load(f)
-            kvec_dict.pop("_attribution")
         return kvec_dict
     else:
         return False
     
-def create_resource(filename, dictionary):
+def create_resource(filename:str, dictionary:dict) -> None:
+    try:
+        os.mkdir(resources)
+    except FileExistsError:
+        print(f"Saving to Resources file at {resources}")
+
     for key, value in dictionary.items():
         if isinstance(value, np.ndarray):
             dictionary[key] = value.tolist()
-    try:
-        with open(filename, 'w') as f:
-            dictionary["_attribution"] = "This data was obtained from the Bilbao Crystallographic Server at www.cryst.ehu.es. Please cite the following: "\
-                                        "| M. I. Aroyo, J. M. Perez-Mato, C. Capillas, E. Kroumova, S. Ivantchev, G. Madariaga, A. Kirov & H. Wondratschek. 'Bilbao Crystallographic Server I: Databases and crystallographic computing programs'. Zeitschrift fuer Kristallographie (2006), 221, 1, 15-27. | and " \
-                                        "| M. I. Aroyo, A. Kirov, C. Capillas, J. M. Perez-Mato & H. Wondratschek. 'Bilbao Crystallographic Server II: Representations of crystallographic point groups and space groups'. Acta Cryst. (2006), A62, 115-128. |" 
-            json.dump(dictionary, f, indent=3)
-    except Exception as e:
-        print(f"Cannot save {filename} resource file. Error: {type(e).__name__}")
+    with open(filename, 'w') as f:
+        json.dump(dictionary, f, indent=3)
         
-        
-        
-def get_kvectors(groupnum, dict_out=False):
+def get_kvectors(groupnum:int, dict_out: bool=False) -> dict|array:
     
     kvec_array = [] #will convert coordinates to array
     kvec_dictionary = {} ## for converting both symbols and coordinates to formatted dictionary
@@ -53,9 +58,9 @@ def get_kvectors(groupnum, dict_out=False):
         kvec_dictionary = localkdict
     else:
         save_file = True
-        URL = "http://webbdcrista2.ehu.es/cgi-bin/cryst/programs/nph-kv-list"
-        page = requests.post(URL, data={'gnum': str(groupnum),'standard':'Optimized listing of k-vector types using ITA description'})
-        soup = BeautifulSoup(page.content, "html.parser")
+        URL = bilbao_url+"cgi-bin/cryst/programs/nph-kv-list"
+        page = requests.post(URL, data={'gnum': str(groupnum),'standard':'Optimized listing of k-vector types using ITA description'}, cookies=cookie_dict)
+        soup = BeautifulSoup(page.content, "html.parser") # type: ignore
         kvec_table = soup.find_all('table')[1]
         rows = kvec_table('tr')[2:]
         raw_kvec_dict = {}
@@ -98,7 +103,7 @@ def get_kvectors(groupnum, dict_out=False):
     else:
         return kvec_array
 
-def get_genmat(groupnum):
+def get_genmat(groupnum:int) -> list[array]:
     """ Retrieve generator matrices 
     
     Parameters
@@ -125,10 +130,10 @@ def get_genmat(groupnum):
         save_file = False
     else:
         save_file = True
-        URL = "http://webbdcrista2.ehu.es/cgi-bin/cryst/programs/nph-getgen"
+        URL = bilbao_url+ "cgi-bin/cryst/programs/nph-getgen"
         page = requests.post(URL, data={'gnum': str(
-            groupnum), 'what': 'gp', 'list': 'Standard/Default+Setting'})
-        gen_pos = BeautifulSoup(page.content, "html.parser")
+            groupnum), 'what': 'gp', 'list': 'Standard/Default+Setting'}, cookies=cookie_dict)
+        gen_pos = BeautifulSoup(page.content, "html.parser") # type: ignore
         holder = gen_pos.find_all("pre")
 
         matrix_text = []
@@ -168,7 +173,7 @@ def get_genmat(groupnum):
 
     return matrix_list
 
-def get_coordinates(groupnum, origin, output_array=True):
+def get_coordinates(groupnum:int, origin:vector_type, output_array:bool=True, a_mag:vector_type = np.array([1,1,1])) -> list|array:
     """ Generates positions from specified origin and generator matrices
     
     Parameters
@@ -190,19 +195,28 @@ def get_coordinates(groupnum, origin, output_array=True):
 
     
     """
-
+    ### We exclude transforms that return points outside of the unit cell. This can be overriden by setting bound_override to True
+    bound_override = True
+    lattice_scaling = np.asarray(a_mag)
     position_vector = np.array([origin[0], origin[1], origin[2]]).reshape(3,1)
     matrix_list = get_genmat(groupnum)
     coordinate_list = []
     coordinate_array = np.array([]).reshape(0,3)
     for n in matrix_list:
         n = np.asarray(n)
+        # scaled_n = (n.T*lattice_scaling).T
         linear_part, translation_part = np.split(n, [3,], axis=1) #Split matrix into linear part and translation part, *after* third element in row
+ 
         #linear_part is 3x3, translation_part is 3x1
         linear_product = np.matmul(linear_part, position_vector)  #matrix part
-        transformation = linear_product + translation_part #affine transformation
+        # print(linear_product)
+        # print(f"lattice: {lattice_scaling} \n translation: {translation_part.T} ")
+
+
+        transformation = linear_product + (translation_part.T * lattice_scaling).T #affine transformation
+        # print(transformation)
         new_point = transformation.reshape(1,3) #make row matrix
-        if ((new_point.all() <= 1) and (new_point.all() >= 0)):
+        if ((((new_point<=lattice_scaling).all()) and ((new_point>= 0).all())) or (bound_override == True)):
             if output_array==True:
                 coordinate_array = np.concatenate([coordinate_array, new_point], axis=0)
             else:
@@ -230,7 +244,7 @@ class SpaceGroup():
 
     def __init__(
             self,
-            group_number,
+            group_number: int,
             **kwargs
                     ) -> None:
         
@@ -249,7 +263,7 @@ class SpaceGroup():
         
         """
         
-        self.point_list = kwargs.get("points", None)
+        self.point_list: array|None = kwargs.get("points", None)
         self.group_num = group_number
         
         self.kvec_dict = get_kvectors(self.group_num, dict_out=True)
@@ -259,7 +273,7 @@ class SpaceGroup():
 
         self.generated_points = self.calculate_points(self.point_list)
 
-    def calculate_points(self, point_list):
+    def calculate_points(self, point_list: list|array|None, a_mag: vector_type = [1,1,1], ignore_repeats:bool = True) -> array:
         """
         Return a list of coordinates resulting from symmetry operations to each point in `point_list`. This is called once if the `SpaceGroup` is initialized with the `points` kwarg.
         It can be called any number of times to directly return points from new `point_list` inputs.
@@ -268,7 +282,13 @@ class SpaceGroup():
         ----------
         point_list : tuple, list, ndarray
             point(s) on which to perform symmetry operations
-            
+
+        a_mag : list, ndarray
+            magnitude of lattice vectors in each direction
+                
+        ignore_repeats : bool (default true)
+            Ignore points that are identical to ones already calculated. There's no reason to change this unless you're trying to view all of the positions
+        
         Return
         -------
         generated_points : ndarray
@@ -278,32 +298,41 @@ class SpaceGroup():
         if point_list is not None:
             if isinstance(point_list, (list, np.ndarray)):
                 for n in point_list:
-                    newpoint = get_coordinates(self.group_num, origin=n)
+                    scaled_point = n * np.asarray(a_mag)
+                    newpoint = get_coordinates(self.group_num, origin=scaled_point, a_mag=a_mag)
                     generated_points = np.vstack((generated_points, newpoint))
                 generated_points.reshape(-1,3)
-                generated_points = np.unique(generated_points, axis=0)
+                listlen=len(generated_points)
+                if ignore_repeats == True:
+                    generated_points = np.unique(generated_points, axis=0)
                 
             else:
-                generated_points = get_coordinates(self.group_num, origin=point_list)
+                generated_points:array = get_coordinates(self.group_num, origin=point_list)
                 generated_points.reshape(-1,3)
-                generated_points = np.unique(generated_points, axis=0)
-        
+                listlen=len(generated_points)
+                if ignore_repeats == True:
+                    generated_points = np.unique(generated_points, axis=0)
+                
+            print(f"Generated {listlen} points, returned {len(generated_points)}. {listlen - len(generated_points)} duplicates removed")
+            print(f"Returned {len(generated_points)} points")
             return generated_points
+
         else:
-            pass
-        
+            return np.array([0,0,0])
+                 
 
 if __name__ == "__main__":
     from matplotlib import pyplot as plt
 
 
-    # crystest = SpaceGroup(227)
-    # pointlist = crystest.calculate_points([(0,0,0)])
+    crystest = SpaceGroup(131)
+    pointlist = crystest.calculate_points([(0,0, 0),(0.5, 0, 0.25)], a_mag=[1,1,1.76])
     # print(pointlist)
-    # print(pointlist.shape)
+    print(pointlist.shape)
     
-    # fig = plt.figure()
-    # ax = fig.add_subplot(projection='3d')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.invert_xaxis()
     
-    # ax.scatter(pointlist[:, 0], pointlist[:, 1], pointlist[:,2])
-    # plt.show()
+    ax.scatter(pointlist[:, 0], pointlist[:, 1], pointlist[:,2])
+    plt.show()

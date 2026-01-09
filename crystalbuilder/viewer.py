@@ -5,31 +5,6 @@ import crystalbuilder.geometry as geo
 vedo.settings.default_backend='vtk'
 
 
-def visualize(structures, plotter_style=9, **kwargs):
-    """
-    
-    Parameters
-    -----------
-    structures : list of geo
-
-    """
-    
-    plot = vedo.Plotter(axes=plotter_style)
-
-
-    for object in structures:
-        
-        if isinstance(object, geo.Cylinder):
-            obj  = visualize_cylinder(object, **kwargs)
-            plot += obj
-        elif isinstance(object, geo.SuperCell):
-            obj  = visualize_supercell(object, **kwargs)
-            plot += obj
-        elif isinstance(object, geo.Sphere):
-            obj = visualize_sphere(object, **kwargs)
-            plot += obj
-            
-    return plot
 
 def add_to_visualizer(structures, plot, **kwargs):
     for object in structures:       
@@ -40,6 +15,36 @@ def add_to_visualizer(structures, plot, **kwargs):
         elif isinstance(object, geo.SuperCell):
             plot += visualize_supercell(object, **kwargs)
 
+
+def visualize(structures, plotter_style=3, **kwargs):
+    """
+    
+    Parameters
+    -----------
+    structures : list of geo
+
+    """
+    
+    plot = vedo.Plotter(axes=plotter_style)
+
+    add_to_visualizer(structures, plot, **kwargs)
+    
+    # for object in structures:
+    #     if isinstance(object, geo.Structure):
+    #         if isinstance(object, geo.Cylinder):
+    #             obj  = visualize_cylinder(object, **kwargs)
+    #             plot += obj
+    #         elif isinstance(object, geo.SuperCell):
+    #             obj  = visualize_supercell(object, **kwargs)
+    #             plot += obj
+    #         elif isinstance(object, geo.Sphere):
+    #             obj = visualize_sphere(object, **kwargs)
+    #             plot += obj
+    #     elif isinstance(object, list):
+    #         for n in object:
+                
+            
+    return plot
 
 def visualize_cylinder(cylinder, **kwargs):
     center = cylinder.center
