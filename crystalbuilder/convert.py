@@ -6,8 +6,11 @@ import platform
 if platform.system() == 'Windows':
     pass
 else:
-    import meep as mp
-
+    try:
+        import meep as mp
+    except ModuleNotFoundError:
+        print("WARNING: MEEP/MPB not installed")
+        pass
 #import tidy3d as td
 try:
     import lumpy.simobjects as so
