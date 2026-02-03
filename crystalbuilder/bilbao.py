@@ -22,7 +22,30 @@ matrix_like = cbt.matrix_like
 
 bilbao_url = "https://cryst.ehu.es/"
 
-# cookie_dict = {"turnstile_passed": '1767991980'}
+cookie_dict = {"turnstile_passed": '1767991980'} #filler cookie. Should be set with _get_spacegroups()
+
+def _get_spacegroups(cookie, spacegroup):
+    """
+    This should not be used in a regular import scenario. This scrapes data from the Bilbao server to create offline resource files, but only works with a cookie obtained after passing a Cloudflare DDOS protection. It will fail if run without configuring that.
+    """
+    formatted_cookie = str(cookie)
+    global cookie_dict
+    cookie_dict = {"turnstile_passed": formatted_cookie}
+    
+    if spacegroup == 'all':
+        spacegroup = list(range(1, 231))
+    else:
+        pass
+
+    if isinstance(spacegroup, list):
+        for n in spacegroup:
+            groupnum = int(n)
+            get_kvectors(groupnum)
+            get_genmat(groupnum)
+    else:
+        get_kvectors(int(spacegroup))
+        get_genmat(int(spacegroup))
+
 
 def check_resource(filename:str) -> dict | Literal[False]:
     if os.path.exists(filename):
@@ -322,11 +345,13 @@ class SpaceGroup():
                  
 
 if __name__ == "__main__":
-    from matplotlib import pyplot as plt
 
 
-    crystest = SpaceGroup(131)
-    pointlist = crystest.calculate_points([(0,0, 0),(0.5, 0, 0.25)], a_mag=[1,1,1.76])
+    _get_spacegroups(cookie='1770081648', spacegroup=230)
+    
+
+    # crystest = SpaceGroup(227)
+    # pointlist = crystest.calculate_points([(0,0,0)])
     # print(pointlist)
     print(pointlist.shape)
     
