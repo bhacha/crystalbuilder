@@ -353,10 +353,11 @@ if __name__ == "__main__":
     # crystest = SpaceGroup(227)
     # pointlist = crystest.calculate_points([(0,0,0)])
     # print(pointlist)
-    # print(pointlist.shape)
+    print(pointlist.shape)
     
-    # fig = plt.figure()
-    # ax = fig.add_subplot(projection='3d')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.invert_xaxis()
     
-    # ax.scatter(pointlist[:, 0], pointlist[:, 1], pointlist[:,2])
-    # plt.show()
+    ax.scatter(pointlist[:, 0], pointlist[:, 1], pointlist[:,2])
+    plt.show()

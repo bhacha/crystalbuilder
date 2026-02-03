@@ -3,15 +3,26 @@ import numpy as np
 from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
 import copy
+import crystalbuilder.housekeeping.types as cbt
 import scipy.spatial as scs
+from typing import Literal
+from crystalbuilder.lattice import Lattice
+
 
 debug = 'off'
+
+
+Iterable = cbt.Iterable
+vector_type = cbt.vector_type
+angle_unit_type = cbt.angle_unit_type
+number = cbt.number
+array = cbt.array
 
 class Structure():
     def __init__(
             self,
             **kwargs
-    ):
+    ) -> None:
         pass
 
 class SuperCell():
@@ -23,7 +34,7 @@ class SuperCell():
 
     Attributes
     ----------
-    geometries : geo.object or list of geo_objects
+    geometries : Structure or list of Structures
         geometries in supercell
     
     center : list or ArrayLike
@@ -44,11 +55,11 @@ class SuperCell():
 
     """
     def __init__(self, 
-                 geometries,
-                 point='center',
-                 shift = False,
+                 geometries : Structure|list[type[Structure]],
+                 point_format: Literal["center", "vertices"] = "center",
+                 shift_enabled: bool = False ,
                  **kwargs
-                 ):
+                 ) -> None:
         """
         Parameters
         -----------
@@ -67,16 +78,20 @@ class SuperCell():
             specifies copy+translation by vector. Relative to center.
 
         """
-    
-        self.point_style = point
-        self.structures = []
-        self._instructures = geometries
-        self.input_center = kwargs.get('center', None)
-        self.rotation = kwargs.get('rotation', None)
-        self.translation = kwargs.get('translation', None)
-        self.unit = kwargs.get('unit', 'degrees')
-        self.shiftcell = shift
-        self.default_center = kwargs.get('relative_center', [0,0,0])
+
+        self.structures = [] 
+        if isinstance(geometries, Structure):
+            self._instructures = [geometries]
+        else:
+            self._instructures = geometries
+        self.point_style = point_format
+        
+        self.input_center: Iterable|None = kwargs.get('center', None)
+        self.rotation: int|None = kwargs.get('rotation', None)
+        self.translation : vector_type|None = kwargs.get('translation', None)
+        self.unit:angle_unit_type = kwargs.get('unit', 'degrees')
+        self.shiftcell = shift_enabled
+        self.default_center: vector_type = kwargs.get('relative_center', [0,0,0])
 
         if self.input_center == None:
             self.cellcenter = self.default_center
@@ -88,15 +103,16 @@ class SuperCell():
             deg = np.degrees(vm.angle_check(self.rotation, self.unit))
             self.rotatecell(deg)
         else:
-            self.structures = self._instructures
+            self.structures = [(self._instructures)]
 
         if self.shiftcell == True:
             self.center = self.cellcenter
 
     def __iter__(self):
         return iter(self.structures)
+    
                    
-    def rotatecell(self, deg, copy=True):
+    def rotatecell(self, deg:number, copy=True):
             """
             Rotation method for rotating a unit cell by deg around the supercell center. Unfortunately it only copies the cell for the moment, giving 360/deg numbers of the cell.
 
@@ -225,18 +241,18 @@ class CylinderVortexCell(SuperCell):
 
     def __init__(
                 self,
-                lattice,
-                center,
-                radius_1,
-                R_max,
-                height = 10,
-                vort_center = [0,0,0],
-                vort_radius = 1,
-                winding_number=1,
-                radius_2 = None,
-                scale = 0,
+                lattice: Lattice,
+                center: vector_type,
+                radius_1: number,
+                R_max: number,
+                height: number = 10,
+                vort_center: vector_type = [0,0,0],
+                vort_radius: number = 1,
+                winding_number: number = 1,
+                radius_2: number|None = None,
+                scale: number = 0,
                 **kwargs
-        ):
+        ) -> None:
             """
             Constructs a Dirac Vortex SuperCell based on a hexagonal cell of cylinders (also called Majorana Zero Mode cavity)
         
@@ -280,8 +296,8 @@ class CylinderVortexCell(SuperCell):
             cyl1_position = self.lattice.lat_to_cart((1-self.scaling)*[1/3, 1/3, 0])
             cyl2_position = self.lattice.lat_to_cart((1+self.scaling)*[2/3, 2/3, 0])
 
-            cyl1 = Cylinder(cyl1_position, radius=radius_1, height = self.height)
-            cyl2 = Cylinder(cyl2_position, radius=radius_2, height = self.height)
+            cyl1 = Cylinder(cyl1_position, radius=self.rad1, height = self.height)
+            cyl2 = Cylinder(cyl2_position, radius=self.rad2, height = self.height)
 
             unitcell = [cyl1, cyl2]
 
@@ -314,7 +330,7 @@ class HexagonalVortexCell(SuperCell):
             phi,
             scale = 1,
             **kwargs
-    ):
+    ) -> None:
         """
         Constructs a Dirac Vortex SuperCell based on a hexagonal cell of triangles (see Ling Lu work mentioned above)
 
@@ -397,14 +413,18 @@ class HexagonalVortexCell(SuperCell):
         return newcopy
 
 class Cylinder(Structure):
+    
     def __init__(
             self,
-            center,
-            radius,
-            height,
-            axis=2,
+            center: Iterable,
+            radius: number,
+            height: number,
+            axis: int|Iterable = 2,
             **kwargs
-    ):
+    ) -> None:
+        """
+        This creates a cylinder object centered at `center` with `radius` and `height` as inputted. The `axis` argument can be an integer from 0-2 (for x, y, z ), respectively, or an iterable vector to point along
+        """
         super().__init__()
         self.center = center
         self.original_center = kwargs.get("original_center", center)
@@ -445,7 +465,7 @@ class Cylinder(Structure):
         vert1 = np.asarray(vertices[0])
         vert2 = np.asarray(vertices[1])
         if height_padding == False:
-            height = np.linalg.norm((vert2 - vert1))
+            height = np.linalg.norm((vert2 - vert1)) + np.linalg.norm((vert2-vert1))*.01
         else:
             height = np.linalg.norm((vert2 - vert1))+height_padding
 
@@ -629,6 +649,9 @@ class Triangle(Structure):
             extent = [self.centroid[1]-self.height/2, self.centroid[1]+self.height/2]
         elif self.inaxis==2:
             extent = [self.centroid[2]-self.height/2, self.centroid[2]+self.height/2]
+        else:
+            print("Error defining axis")
+            return
         return extent
     
     def calc_circumcenter(self):

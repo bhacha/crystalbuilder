@@ -7,8 +7,10 @@ import platform
 if platform.system() == 'Windows':
     pass
 else:
-    import meep as mp
-
+    try:
+        import meep as mp
+    except:
+        pass
 try:
     import lumpy.simobjects as so
 except ModuleNotFoundError:
