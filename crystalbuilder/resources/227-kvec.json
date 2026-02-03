@@ -1,0 +1,63 @@
+{
+   "GM ": [
+      0.0,
+      0.0,
+      0.0
+   ],
+   "X ": [
+      0.0,
+      1.0,
+      0.0
+   ],
+   "L ": [
+      0.5,
+      0.5,
+      0.5
+   ],
+   "W ": [
+      0.5,
+      1.0,
+      0.0
+   ],
+   "DT ": [
+      0.0,
+      1.0,
+      0.0
+   ],
+   "LD ": [
+      1,
+      1,
+      1
+   ],
+   "V ": [
+      1.0,
+      1.0,
+      0.0
+   ],
+   "SM (S)": [
+      1.0,
+      1.0,
+      0.0
+   ],
+   "Q ": [
+      0.5,
+      1.0,
+      1.0
+   ],
+   "A (B)": [
+      1.0,
+      1.0,
+      0.0
+   ],
+   "C (J)": [
+      1,
+      1,
+      1
+   ],
+   "GP ": [
+      1,
+      1,
+      1
+   ],
+   "_attribution": "This data was obtained from the Bilbao Crystallographic Server at www.cryst.ehu.es. Please cite the following: | M. I. Aroyo, J. M. Perez-Mato, C. Capillas, E. Kroumova, S. Ivantchev, G. Madariaga, A. Kirov & H. Wondratschek. 'Bilbao Crystallographic Server I: Databases and crystallographic computing programs'. Zeitschrift fuer Kristallographie (2006), 221, 1, 15-27. | and | M. I. Aroyo, A. Kirov, C. Capillas, J. M. Perez-Mato & H. Wondratschek. 'Bilbao Crystallographic Server II: Representations of crystallographic point groups and space groups'. Acta Cryst. (2006), A62, 115-128. |"
+}

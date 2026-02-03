@@ -5,7 +5,7 @@ from crystalbuilder import geometry as geo
 try:
     import lumpy.simobjects as so
 except ModuleNotFoundError:
-    print("Error: Lumpy and/or the Lumerical API were not found.")
+    print("Warning: Lumpy and/or the Lumerical API were not found.")
 
 
 debug = 'trace'   #trace = 3, debug = 2, info = 1, none = 0
