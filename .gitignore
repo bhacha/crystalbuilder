@@ -166,7 +166,7 @@ cython_debug/
 #.idea/
 
 *.hdf5
-*.json
+
 
 
 crystalbuilder/version.py
