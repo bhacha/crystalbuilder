@@ -4,6 +4,8 @@ try:
     from tidy3d import Transformed, Structure, GeometryGroup, Cylinder, Medium, Simulation, PointDipole, C_0, GridSpec, GaussianPulse
 except ModuleNotFoundError:
     pass
+except ImportError:
+    pass
 
 from crystalbuilder import geometry as geo
 debug = "off"
