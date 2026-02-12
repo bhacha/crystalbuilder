@@ -3,24 +3,19 @@ from crystalbuilder.conversions.t3d import geo_to_tidy3d
 from crystalbuilder import lattice as lat
 from crystalbuilder import geometry as geo
 from crystalbuilder.conversions import lumc as lc
-from crystalbuilder.conversions import model
 import platform
-
 if platform.system() == 'Windows':
-    print("You're using Windows, so you don't have access to the MEEP/MPB functions. Consider using Windows Subsystem for Linux.")
     pass
 else:
-    import meep as mp
-
+    try:
+        import meep as mp
+    except:
+        pass
 try:
     import lumpy.simobjects as so
 except ModuleNotFoundError:
     pass
 debug = "off"
-
-def vedo_to_obj(list, filename):
-    model.combine_and_export(list, filename)
-    
 
 def vectorize(list):
     """Converts list of x,y,z coordinates to mp.Vector3 object
@@ -120,11 +115,14 @@ def _geo_to_meep(geometry_object, material, ismpb = False, **kwargs):
                 
                 if ismpb == True: 
                     k = vectorize(m.center)
+                    ax = vectorize(m.axis)
                     newcent = mp.cartesian_to_lattice(k, geo_lattice)
+                    newax = mp.cartesian_to_lattice(ax, geo_lattice)
                 else:
                     newcent = vectorize(m.center)
+                    newax = vectorize(m.axis)
 
-                item = mp.Cylinder(radius=m.radius, axis= m.axis, height=m.height, center=newcent, material=material)
+                item = mp.Cylinder(radius=m.radius, axis=newax, height=m.height, center=newcent, material=material)
                 geom_list.append(item)
 
             elif isinstance(m, geo.Triangle):
