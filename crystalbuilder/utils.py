@@ -53,7 +53,7 @@ class TransformationMatrix:
         
   
         rot_axis_unnorm = np.cross(v1, orientation) #take the cross product to find the axis of rotation
-        sin_theta = rot_axis_unnorm #Since our vectors are length 1, sine of theta is simply their cross product.
+        sin_theta = np.linalg.norm(rot_axis_unnorm) #Since our vectors are length 1, sine of theta is simply the magnitude of the cross product.
         cos_theta = np.dot(v1, orientation) # Similarly, the value of cosine theta is the dot product
         
         rot_axis = rot_axis_unnorm/np.linalg.norm(rot_axis_unnorm) #Normalize axis of rotation (probably unnecessary, but computationally cheaper than worrying about possible edge cases)
@@ -65,15 +65,20 @@ class TransformationMatrix:
     )
         eyemat = np.identity(3)   
         rot_mat = eyemat + (sin_theta * skew_mat) + ((1-cos_theta)*(skew_mat@skew_mat))
-        rot_mat = np.pad(rot_mat, (0,1)).round(decimals=4)
+        
+        rot_mat = np.pad(rot_mat, (0,1)) #Unfortunately the trimesh default tolerance is quite low, so you can't round this off easily.
         rot_mat[3,3] = 1
+        print(rot_mat)
         return rot_mat
 
-        
+
+
+
 
 if __name__ == "__main__":
     
-    tmat = TransformationMatrix.rotate_to([1,0,0])
+    tmat = TransformationMatrix.rotate_to([1,.5,0])
+    print(tmat)
     cyl1 = trimesh.primitives.Cylinder(radius=1, height=1)
     cylinder = trimesh.primitives.Cylinder(radius=1, height=1)
     cylinder.apply_transform(tmat)
