@@ -174,3 +174,4 @@ examples/Tidy3D/
 *.npy
 
 isolated/
+local-only/
