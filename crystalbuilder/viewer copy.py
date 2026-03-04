@@ -9,11 +9,11 @@ vedo.settings.default_backend='vtk'
 def add_to_visualizer(structures, plot, **kwargs):
     for object in structures:       
         if isinstance(object, geo.Cylinder):
-            plot += _visualize_cylinder(object, **kwargs)
+            plot += visualize_cylinder(object, **kwargs)
         elif isinstance(object, geo.Sphere):
-            plot += _visualize_sphere(object, **kwargs)
+            plot += visualize_sphere(object, **kwargs)
         elif isinstance(object, geo.SuperCell):
-            plot += _visualize_supercell(object, **kwargs)
+            plot += visualize_supercell(object, **kwargs)
 
 
 def visualize(structures, plotter_style=3, **kwargs):
@@ -46,7 +46,7 @@ def visualize(structures, plotter_style=3, **kwargs):
             
     return plot
 
-def _visualize_cylinder(cylinder, **kwargs):
+def visualize_cylinder(cylinder, **kwargs):
     center = cylinder.center
     radius = cylinder.radius
     height = cylinder.height
@@ -56,7 +56,7 @@ def _visualize_cylinder(cylinder, **kwargs):
     obj.name = name
     return obj
 
-def _visualize_sphere(sphere, **kwargs):
+def visualize_sphere(sphere, **kwargs):
     center = sphere.center
     radius = sphere.radius
     name = str(sphere.center)
@@ -64,13 +64,13 @@ def _visualize_sphere(sphere, **kwargs):
     obj.name = name
     return obj
 
-def _visualize_supercell(SuperCell, **kwargs):
+def visualize_supercell(SuperCell, **kwargs):
     objects = []
     for structure in SuperCell:
         if isinstance(structure, geo.Cylinder):
-            objects.append(_visualize_cylinder(structure, **kwargs))
+            objects.append(visualize_cylinder(structure, **kwargs))
         elif isinstance(structure, geo.Sphere):
-            objects.append(_visualize_sphere(structure, **kwargs))
+            objects.append(visualize_sphere(structure, **kwargs))
     return objects
 
 
@@ -80,4 +80,3 @@ if __name__ == "__main__":
     cylinder1 = geo.Cylinder(center=(0,0,0), radius=1, height=3, axis=2)
     cylinder2 = geo.Cylinder(center=(5,5,0), radius=2, height=6, axis=1)
     visualize([cylinder1, cylinder2])
-    
