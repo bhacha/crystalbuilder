@@ -1,9 +1,11 @@
+from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 import ast
 from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
 import copy
+
 from crystalbuilder import geometry as geometry
 
 debug='off'

@@ -1,4 +1,6 @@
 #Geometry File
+
+from __future__ import annotations
 import numpy as np
 from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
@@ -6,8 +8,10 @@ import copy
 import crystalbuilder.housekeeping.types as cbt
 import scipy.spatial as scs
 from typing import Literal
-from crystalbuilder.lattice import Lattice
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from crystalbuilder.lattice import Lattice
 
 debug = 'off'
 
@@ -499,6 +503,7 @@ class Cylinder(Structure):
 
         if 'radius' in kwargs: 
             if debug==True:print("Making Structure with radius: ", rad)
+            newrad = rad
         else:
             newrad = self.radius
 
@@ -540,6 +545,7 @@ class Sphere(Structure):
 
         if 'radius' in kwargs: 
             if debug==True:print("Making Structure with radius: ", rad)
+            newrad = rad
         else:
             newrad = self.radius
 
@@ -743,6 +749,61 @@ class eqTriangle(Triangle):
 
         Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center)
 
+class Block(Structure):
+    """
+    A class for cubes, rectangular prisms, and other parallelpipeds.
+    
+    """
+    
+    def __init__(self, vertices):
+        self.vertices = vertices
+        
+        pass
+        
+        
+        
+    def calculate_vectors(self):
+        """ 
+        Using the vertices, calculate the edge vectors that describe the structure. This is necessary for MPB/MEEP.
+        
+        """
+        
+        
+        
+        
+    @classmethod
+    def from_bounds(cls, list_of_bounds:list):
+        """
+        Create a parallelepiped from 3 pairs of [min, max] values.
+        
+        Parameters
+        ----------
+            list of bounds
+        """
+        return
+        
+    @classmethod
+    def from_vectors(cls, list_of_vectors:list):
+        """
+        Create a parallelepiped from 3 <x,y,z> vectors that define the edges
+        """
+        return
+
+    @classmethod
+    def from_vertices(cls, list_of_vertices:list):
+        """ 
+        Create a parallelepiped from a list of 8  (x,y,z) vertices
+        """
+        vert_array = np.zeros((8,3))
+        for index, vertex in enumerate(list_of_vertices):
+            try:
+                npvert = np.asarray(vertex)
+                vert_array[index, :] = npvert
+            except Exception as e:
+                print(e)
+        
+        return cls(vert_array)
+    
 
 def NearestNeighbors(points, radius, neighborhood_range, a_mag=1.0):
     """
@@ -775,8 +836,16 @@ def NearestNeighbors(points, radius, neighborhood_range, a_mag=1.0):
 
 
 if __name__ == "__main__":
-    rng = np.random.default_rng()
-    points = rng.random((15, 3))
-
-    test = NearestNeighbors(points, radius=.5, neighborhood_range=.3, a_mag=1)
-    print(isinstance(test[0], Structure))
+    x = y = z = 1
+    
+    vert1 = [0,0,0]
+    vert2 = [x,0,0]
+    vert3 = [0,y,0]
+    vert4 = [0,0,z]
+    vert5 = [x, 0, z]
+    vert6 = [x, y, 0]
+    vert7 = [0, y, z]
+    vert8 = [x, y, z]
+    vertices = [vert1, vert2, vert3, vert4, vert5, vert6, vert7, vert8]
+    
+    block = Block.from_vertices(vertices)
