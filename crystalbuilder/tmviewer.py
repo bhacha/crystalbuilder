@@ -72,7 +72,6 @@ def _visualize_supercell(SuperCell, **kwargs):
 
 
 
-
 if __name__ == "__main__":
     cylinder1 = geo.Cylinder(center=(0,1,0), radius=.5, height=3, axis=1)
     cylinder2 = geo.Cylinder(center=(0,0,0), radius=.5, height=6, axis=0)

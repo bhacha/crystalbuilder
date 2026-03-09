@@ -751,25 +751,42 @@ class eqTriangle(Triangle):
 
 class Block(Structure):
     """
-    A class for cubes, rectangular prisms, and other parallelpipeds.
+    A class for cubes, rectangular prisms, and other parallelpipeds. By default, match MEEP/MPB's method of defining blocks based on 3 vectors. 
     
     """
     
-    def __init__(self, vertices):
-        self.vertices = vertices
+    def __init__(self, vectors):
+
+        self.a_vec = vectors[0]
+        self.b_vec = vectors[1]
+        self.c_vec = vectors[2]
         
-        pass
+        self.invec_array = np.array([self.a_vec, self.b_vec, self.c_vec])
+        self._normalize_vectors(self.invec_array)
+
+
+
+   
+                
+    def _normalize_vectors(self, vectors:array):
+        """ returns an array of unit vectors from input. Retains the original sizes for later scaling """
+        self.normalized_vecs = np.zeros_like(vectors)
+        self.input_magnitude = []
+        for index, vect in enumerate(vectors):
+            npvec = np.asarray(vect)
+            unit_vec = npvec/np.linalg.norm(npvec)
+            self.input_magnitude.append(np.linalg.norm(npvec))
+            self.normalized_vecs[index] = unit_vec
+
         
-        
-        
+
     def calculate_vectors(self):
         """ 
         Using the vertices, calculate the edge vectors that describe the structure. This is necessary for MPB/MEEP.
         
         """
-        
-        
-        
+        pass
+                
         
     @classmethod
     def from_bounds(cls, list_of_bounds:list):
@@ -783,16 +800,22 @@ class Block(Structure):
         return
         
     @classmethod
-    def from_vectors(cls, list_of_vectors:list):
+
+
+
+    def from_vectors(cls, list_of_vectors:list, magnitudes:list|float):
         """
-        Create a parallelepiped from 3 <x,y,z> vectors that define the edges
-        """
-        return
+        Create a parallelepiped from 3 <x,y,z> vectors that define the edges. In keeping the MEEP compatibility, the magnitude of the vectors should be passed separately.
+        """      
+
+
+
+        return cls(list_of_vectors)
 
     @classmethod
     def from_vertices(cls, list_of_vertices:list):
         """ 
-        Create a parallelepiped from a list of 8  (x,y,z) vertices
+        Create a parallelepiped from a list of 8  (x,y,z) vertices. Unfortunately, I'm not yet sure how to determine which points are connected to form each face. I think this might need to be passed as an ordered list. Lumerical requires a counterclockwise specification and then it extrudes in the third dimension. This prevents slanted things, so for now I'm going to ignore this and have the class use the basis vectors as the default. 
         """
         vert_array = np.zeros((8,3))
         for index, vertex in enumerate(list_of_vertices):
@@ -848,4 +871,8 @@ if __name__ == "__main__":
     vert8 = [x, y, z]
     vertices = [vert1, vert2, vert3, vert4, vert5, vert6, vert7, vert8]
     
-    block = Block.from_vertices(vertices)
+    e1=(2.0, 0.0, 0.0)
+    e2=(0.0, 1.0, 0.0)
+    e3=(0.0, 0.0, 1.0)
+
+    block = Block.from_vectors([e1, e2, e3], [1,1,1])
