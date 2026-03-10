@@ -755,29 +755,80 @@ class Block(Structure):
     
     """
     
-    def __init__(self, vectors):
+    def __init__(self, center, vectors, size=None):
+        """
+        Create a Block from a set of vectors, using their magnitudes to define the size by default. This is different than MEEP/MPB, which ignores the size. If `size` is not None, use the passed values to rescale like MEEP/MPB.
+        """
 
-        self.a_vec = vectors[0]
-        self.b_vec = vectors[1]
-        self.c_vec = vectors[2]
-        
-        self.invec_array = np.array([self.a_vec, self.b_vec, self.c_vec])
+        self.invec_array = np.array([vectors[0], vectors[1], vectors[2]])
+        self.input_magnitudes = size
+
+        self.normalized_vecs = np.zeros_like(vectors) #Zeros until `_normalize_vectors`
+        self.calculated_magnitudes = np.zeros(3) # Zero until `_normalize_vectors`
+
         self._normalize_vectors(self.invec_array)
+        
+        if self.input_magnitudes != None:
+            self.scaled_vectors = self.normalized_vecs*self.input_magnitudes
+        else:
+            self.scaled_vectors = self.normalized_vecs*self.calculated_magnitudes
+        
+        ### The origin and center should be related, so I think it's probably better to define a center and calculate the origin. 
+        self.center = np.asarray(center)
+        self.origin = self.center - np.sum(self.scaled_vectors/2, 0)  # The origin should be the corner from where the 3 vectors are defined
 
+        self._calculate_verts()
+        self._calculate_edges()
 
+    def _calculate_verts(self):
+        """
+        Calculate vertices
+        """        
+        self.vertices = np.zeros([8, 3])
+        self.vertices[0, :] = self.origin #Start with the first vertex being the origin point
+        
+        ### I think I could iterate through with a for loop to generate the next 7 since its like a binomial addition, but it might actually be more efficient to hardcode their values.
+        self.vertices[1, :] = self.origin + self.scaled_vectors[0] 
+        self.vertices[2, :] = self.origin + self.scaled_vectors[0] + self.scaled_vectors[1]
+        self.vertices[3, :] = self.origin + self.scaled_vectors[1]
 
-   
+        #Add the z component
+        self.vertices[4:, :] = self.vertices[0:4, :] + self.scaled_vectors[2]
+
+    def _calculate_edges(self):
+        """
+        Using the *calculated* vertices, calculate the edges as pairs that define the starting and stopping points. The ordering of the vertices calculation process makes this much easier than it appears. The first and last 4 points form 4 edges each (8 total), then the first 4 and last 4 combine for 4 more (12 total).
+         
+        The resulting array is in the shape 2x12x3, with 2 stacks of 12 elements each having 3 dimensions. The edges are defined as starting at [0, Edge_Number, :] and ending at [1, Edge_Number, :]
+        
+        """
+        edge_array = np.zeros((2,12,3))
+
+        for k in range(1,5):
+            verta1 = self.vertices[:4, :].take(k-1, axis=0, mode='wrap')
+            verta2 = self.vertices[:4, :].take(k, axis=0, mode='wrap')
+
+            vertb1 = self.vertices[4:, :].take(k-1, axis=0, mode='wrap')
+            vertb2 = self.vertices[4:, :].take(k, axis=0, mode='wrap')
+            
+            j = k-1
+            edge_array[0, j, :] = verta1
+            edge_array[1, j, :] = verta2
+            edge_array[0, j+4, :] = vertb1
+            edge_array[1, j+4, :] = vertb2
+            edge_array[0, j+8, :] = verta2
+            edge_array[1, j+8, :] = vertb2
+
+        self.edge_array = edge_array  
                 
     def _normalize_vectors(self, vectors:array):
-        """ returns an array of unit vectors from input. Retains the original sizes for later scaling """
-        self.normalized_vecs = np.zeros_like(vectors)
-        self.input_magnitude = []
+        """ Gets magnitudes of input vectors and creates an array of unit vectors from input"""
         for index, vect in enumerate(vectors):
             npvec = np.asarray(vect)
             unit_vec = npvec/np.linalg.norm(npvec)
-            self.input_magnitude.append(np.linalg.norm(npvec))
+            self.calculated_magnitudes[index] = np.linalg.norm(npvec)
             self.normalized_vecs[index] = unit_vec
-
+        
         
 
     def calculate_vectors(self):
@@ -800,17 +851,12 @@ class Block(Structure):
         return
         
     @classmethod
-
-
-
-    def from_vectors(cls, list_of_vectors:list, magnitudes:list|float):
+    def from_vectors(cls, center:list, list_of_vectors:list, magnitudes:list|float):
         """
         Create a parallelepiped from 3 <x,y,z> vectors that define the edges. In keeping the MEEP compatibility, the magnitude of the vectors should be passed separately.
         """      
 
-
-
-        return cls(list_of_vectors)
+        return cls(center=center, vectors=list_of_vectors, size=magnitudes)
 
     @classmethod
     def from_vertices(cls, list_of_vertices:list):
@@ -861,18 +907,19 @@ def NearestNeighbors(points, radius, neighborhood_range, a_mag=1.0):
 if __name__ == "__main__":
     x = y = z = 1
     
-    vert1 = [0,0,0]
-    vert2 = [x,0,0]
-    vert3 = [0,y,0]
-    vert4 = [0,0,z]
-    vert5 = [x, 0, z]
-    vert6 = [x, y, 0]
-    vert7 = [0, y, z]
-    vert8 = [x, y, z]
-    vertices = [vert1, vert2, vert3, vert4, vert5, vert6, vert7, vert8]
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+
     
-    e1=(2.0, 0.0, 0.0)
-    e2=(0.0, 1.0, 0.0)
+    e1=(1.0, 1, 0.0)
+    e2=(0.0, 1.0, 1.0)
     e3=(0.0, 0.0, 1.0)
 
-    block = Block.from_vectors([e1, e2, e3], [1,1,1])
+    block = Block.from_vectors(center=[.5,.5,.5], list_of_vectors=[e1, e2, e3], magnitudes= [2,1,1])
+    vertices = block.vertices
+    ax.scatter(xs=vertices[:, 0], ys = vertices[:,1], zs=vertices[:,2])
+    edges = block.edge_array
+    for n in range(0, 12):
+        ax.plot([edges[0,n,0],edges[1,n,0]], [edges[0,n,1],edges[1,n,1]], [edges[0,n,2], edges[1,n,2]])

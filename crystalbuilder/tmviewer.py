@@ -61,6 +61,9 @@ def _visualize_sphere(sphere, **kwargs):
     obj = tm.primitives.Sphere(radius=radius, transform=transform, **kwargs)
     return obj
 
+def _visualize_block(block, **kwargs):
+    
+
 def _visualize_supercell(SuperCell, **kwargs):
     objects = []
     for structure in SuperCell:

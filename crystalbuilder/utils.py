@@ -49,7 +49,8 @@ class TransformationMatrix:
         
         self.tmat = np.pad(eyemat, (0, 1)) #pad to 4x4 after rotations are defined
         self.tmat[3,3] = 1 #Set the 4,4 element to 1
-        
+    
+       
         
     @classmethod
     def shift_and_rotate(cls, new_position, axis_vector, initial_axis = [0,0,1], initial_position=[0,0,0]):
