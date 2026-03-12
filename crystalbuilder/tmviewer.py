@@ -10,6 +10,8 @@ def add_to_visualizer(structures, plot, **kwargs):
             plot.add_geometry(_visualize_cylinder(object, **kwargs))
         elif isinstance(object, geo.Sphere):
             plot.add_geometry(_visualize_sphere(object, **kwargs))
+        elif isinstance(object, geo.Block):
+            plot.add_geometry(_visualize_block(object, **kwargs))
         elif isinstance(object, geo.SuperCell):
             plot.add_geometry(_visualize_supercell(object, **kwargs))
 
@@ -62,7 +64,15 @@ def _visualize_sphere(sphere, **kwargs):
     return obj
 
 def _visualize_block(block, **kwargs):
-    
+    center = block.center
+    extents = block.extents
+    vectors = block.normalized_vecs
+    linear_transform = tmat.transform(vectors)
+    translate = tmat.shift_to(new_position=center)
+    transform = translate @ linear_transform
+    obj = tm.primitives.Box(extents=extents, transform=transform, **kwargs)
+    print(obj)
+    return obj
 
 def _visualize_supercell(SuperCell, **kwargs):
     objects = []
@@ -71,6 +81,8 @@ def _visualize_supercell(SuperCell, **kwargs):
             objects.append(_visualize_cylinder(structure, **kwargs))
         elif isinstance(structure, geo.Sphere):
             objects.append(_visualize_sphere(structure, **kwargs))
+        elif isinstance(structure, geo.Block):
+            objects.append(_visualize_block(structure, **kwargs))
     return objects
 
 
@@ -79,6 +91,7 @@ if __name__ == "__main__":
     cylinder1 = geo.Cylinder(center=(0,1,0), radius=.5, height=3, axis=1)
     cylinder2 = geo.Cylinder(center=(0,0,0), radius=.5, height=6, axis=0)
     sphere = geo.Sphere(center=[1,1,1], radius=.25)
-    plot=visualize([cylinder1, cylinder2, sphere])
+    block = geo.Block(center=[2,0,0], vectors=[[1,0,0], [0,1,1], [1,0,1]])
+    plot=visualize([cylinder1, sphere,block])
     plot.show(viewer='gl')
     plot.strip_visuals()

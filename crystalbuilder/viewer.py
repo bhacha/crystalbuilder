@@ -1,20 +1,25 @@
 import vedo
-import crystalbuilder
 import crystalbuilder.geometry as geo
+from crystalbuilder.utils import TransformationMatrix
 
 vedo.settings.default_backend='vtk'
 
 
 
 def add_to_visualizer(structures, plot, **kwargs):
-    for object in structures:       
-        if isinstance(object, geo.Cylinder):
-            plot += _visualize_cylinder(object, **kwargs)
-        elif isinstance(object, geo.Sphere):
-            plot += _visualize_sphere(object, **kwargs)
-        elif isinstance(object, geo.SuperCell):
-            plot += _visualize_supercell(object, **kwargs)
-
+    try:
+        for object in structures:       
+            if isinstance(object, geo.Cylinder):
+                plot += _visualize_cylinder(object, **kwargs)
+            elif isinstance(object, geo.Sphere):
+                plot += _visualize_sphere(object, **kwargs)
+            elif isinstance(object, geo.Block):
+                plot += _visualize_block(object, **kwargs)
+            elif isinstance(object, geo.SuperCell):
+                plot += _visualize_supercell(object, **kwargs)
+                
+    except TypeError: # Raised if the input isn't a list
+        add_to_visualizer([structures], plot, **kwargs) #I'll put it in a list for you :)
 
 def visualize(structures, plotter_style=3, **kwargs):
     """
@@ -71,13 +76,29 @@ def _visualize_supercell(SuperCell, **kwargs):
             objects.append(_visualize_cylinder(structure, **kwargs))
         elif isinstance(structure, geo.Sphere):
             objects.append(_visualize_sphere(structure, **kwargs))
+        elif isinstance(structure, geo.Block):
+            objects.append(_visualize_block(block, **kwargs))
     return objects
 
+def _visualize_block(block,**kwargs):
+    center = block.center
+    size = block.extents
+    vectors = block.normalized_vecs
+    transform = TransformationMatrix.transform_in_place(origin=block.center, desired_vectors=vectors)
+    obj = vedo.Box(pos=center, size=size)
+    obj.apply_transform(transform)
+    return obj
 
 
+    
 
 if __name__ == "__main__":
-    cylinder1 = geo.Cylinder(center=(0,0,0), radius=1, height=3, axis=2)
-    cylinder2 = geo.Cylinder(center=(5,5,0), radius=2, height=6, axis=1)
-    visualize([cylinder1, cylinder2])
-    
+    # cylinder1 = geo.Cylinder(center=(0,0,0), radius=1, height=3, axis=2)
+    # cylinder2 = geo.Cylinder(center=(5,5,0), radius=2, height=6, axis=1)
+    # visualize([cylinder1, cylinder2])
+    block = geo.Block(center=[2,0,0], vectors=[[1,1,0], [0,1,1], [1,0,1]], size=[1,1,1])
+    block2 = geo.Block(center=[10, 0, 0],vectors=[[1,1,0], [0,1,1], [1,0,1]], size=[1,1,1])
+    plot = visualize([block, block2])
+    plot.show(axes={"xrange":(0,5)} )
+    geometry = plot.get_actors()
+    print(geometry[0].bounds)

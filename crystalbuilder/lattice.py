@@ -311,6 +311,25 @@ class Lattice:
             
             if vm.debug == 'on':
                 print("Lat: ", "newgeom = ", newgeom[0].center, "   ", newgeom[1].center)
+                
+        elif isinstance(Geometry, geometry.Block):
+            if vm.debug == 'on': print("Lat: Geometry is a Block")
+            xcen = Geometry.center[0]
+            ycen = Geometry.center[1]
+            zcen = Geometry.center[2]
+            
+            
+            tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
+            if vm.debug == 'on': print("Lat: ", tiledpoints)
+
+            for m in range(0,len(tiledpoints)):
+                if vm.debug == 'on': print("Lat: the center is: \n", tiledpoints[m], "\n")
+                newstruct = Geometry.copy(center=tiledpoints[m])
+                newgeom.append(newstruct)
+            
+            if vm.debug == 'on':
+                print("Lat: ", "newgeom = ", newgeom[0].center, "   ", newgeom[1].center)
+            
 
         elif isinstance(Geometry, list):
             if vm.debug == 'on': print("Lat: Geometry is a list")

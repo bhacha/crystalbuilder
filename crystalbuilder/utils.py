@@ -42,13 +42,9 @@ class TransformationMatrix:
         else:
             return False
     
-    def __init__(self) -> None:
+    def __init__(self, transformation_matrix) -> None:
         
-        eyemat = np.identity(3) #3x3 matrix for rotations
-        
-        
-        self.tmat = np.pad(eyemat, (0, 1)) #pad to 4x4 after rotations are defined
-        self.tmat[3,3] = 1 #Set the 4,4 element to 1
+        self.tmat = transformation_matrix
     
        
         
@@ -102,29 +98,50 @@ class TransformationMatrix:
         tmat = np.pad(eyemat, (0, 1)) #pad to 4x4 after rotations are defined
         tmat[3,3] = 1 #Set the 4,4 element to 1
         
-        tmat[0, 3] = new_position[0]
-        tmat[1, 3] = new_position[1]
-        tmat[2, 3] = new_position[2]
+        tmat[0, 3] = new_position[0]-initial_position[0]
+        tmat[1, 3] = new_position[1]-initial_position[1]
+        tmat[2, 3] = new_position[2]-initial_position[2]
+        return tmat
+
+    @classmethod
+    def transform(cls, desired_vectors:npt.NDArray|list, initial_vectors:npt.NDArray|list =[[1,0,0], [0,1,0], [0,0,1]]):
+        """
+        This should orient and shear a rectangle to make the desired parallelepiped. In creating this I realized that my other methods are way overengineered...
+        
+        I already know the resulting vector, so I don't need anything like the Rodrigues formula when I can just solve MA=B -> M = BA^-1 to find the transformation matrix M. 
+        
+        """
+        initial_vec_array = np.zeros((4,4))
+        final_vec_array = np.zeros((4,4))
+        for number, vector in enumerate(initial_vectors):
+            initial_vec_array[:3, number] = np.asarray(vector)[:3]
+        
+        for number, vector in enumerate(desired_vectors):
+            final_vec_array[:3, number] = np.asarray(vector)[:3]
+
+        initial_vec_array[3,3] = final_vec_array[3,3] = 1
+
+        tmat = final_vec_array @ np.linalg.inv(initial_vec_array)
+        return tmat
+    
+    @classmethod
+    def transform_in_place(cls, origin, desired_vectors:npt.NDArray|list, initial_vectors:npt.NDArray|list =[[1,0,0], [0,1,0], [0,0,1]]):
+        """
+        This corrects any weirdness that occurs when transforming an object that's away from the global origin (0,0,0)
+        """
+        object_origin_position = np.asarray(origin)
+        shiftmat1 = cls.shift_to([0,0,0], object_origin_position)
+        transform_mat = cls.transform(desired_vectors=desired_vectors, initial_vectors=initial_vectors)
+        shiftmat2 = cls.shift_to(new_position=object_origin_position, initial_position=[0,0,0])
+        tmat = shiftmat2 @ (transform_mat @ shiftmat1)
+        # print(f"Transformation Matrix Info: \n Determinant: {np.linalg.det(tmat)}")
+        # print(f"Shift Matrix 1: \n {shiftmat1} \n Shift Matrix 2: \n {shiftmat1} \n \n Final Transformation Matrix: \n {tmat}")
         return tmat
 
 
 if __name__ == "__main__":
        
-    tmat = TransformationMatrix.rotate_to([1,0,0])
-    transmat = TransformationMatrix.shift_to([1,1,1])
-    # print(f"Rotation: \n{tmat}")
-    # print(f"Translation: \n {transmat}")
-    combined = np.matmul(transmat, tmat)
+    desired_a = [[1,1,0], [0,1,1], [1,0,1], [0,0,0]]
     
-    # combmat = TransformationMatrix.shift_and_rotate(new_position=[0,0,0], axis_vector=[1,0,0])
-
-    # cyl1 = trimesh.primitives.Cylinder(radius=1, height=1)
-    # cylinder = trimesh.primitives.Cylinder(radius=1, height=1)
-    # cylinder.apply_transform(tmat)
-
-    
-    
-    # print(tmat.shape)
-    # print(tmat)
-    # print(cylinder.direction)
-    # cylinder.show(viewer='gl')
+    newmat = TransformationMatrix.transform(desired_vectors=desired_a)
+    print(newmat)

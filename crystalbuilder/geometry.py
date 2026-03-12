@@ -753,6 +753,26 @@ class Block(Structure):
     """
     A class for cubes, rectangular prisms, and other parallelpipeds. By default, match MEEP/MPB's method of defining blocks based on 3 vectors. 
     
+    Attributes
+    ----------
+    center : ndarray
+        Center position
+        
+    origin : ndarray
+        Origin point, which is a corner where the vectors defining the block start
+    
+    extents : ndarray
+        size of the structure as defined by the magnitude of the supplied vectors (default) or an argument passed to the constructor
+        
+    normalized_vecs : ndarray
+        Three 3D vectors that define the structure
+        
+    vertices : ndarray
+        All vertices that make up the structure
+        
+    edges : ndarray
+        All edges that make up the structure
+    
     """
     
     def __init__(self, center, vectors, size=None):
@@ -761,17 +781,22 @@ class Block(Structure):
         """
 
         self.invec_array = np.array([vectors[0], vectors[1], vectors[2]])
-        self.input_magnitudes = size
+        
+        self.input_magnitudes: list|cbt.Iterable|None = size
 
-        self.normalized_vecs = np.zeros_like(vectors) #Zeros until `_normalize_vectors`
+        self.normalized_vecs = np.zeros([3,3]) #Zeros until `_normalize_vectors`
         self.calculated_magnitudes = np.zeros(3) # Zero until `_normalize_vectors`
 
         self._normalize_vectors(self.invec_array)
         
-        if self.input_magnitudes != None:
+        
+        
+        if self.input_magnitudes is not None:
             self.scaled_vectors = self.normalized_vecs*self.input_magnitudes
+            self.extents = np.asarray([1,1,1])*self.input_magnitudes
         else:
             self.scaled_vectors = self.normalized_vecs*self.calculated_magnitudes
+            self.extents = np.asarray([1,1,1])*self.calculated_magnitudes
         
         ### The origin and center should be related, so I think it's probably better to define a center and calculate the origin. 
         self.center = np.asarray(center)
@@ -779,6 +804,42 @@ class Block(Structure):
 
         self._calculate_verts()
         self._calculate_edges()
+
+                
+    def copy(self, **kwargs):
+        """
+        Keyword Args
+        ------------
+        center : tuple
+            new center for copied object
+            
+
+        """
+        cent = kwargs.get('center')
+        vectors = kwargs.get('vectors')
+        size = kwargs.get('size')
+        
+        if 'vectors' in kwargs: 
+            if debug==True:print("Making Structure with vectors: ", vectors)
+            newvec = vectors
+        else:
+            newvec = self.normalized_vecs
+
+        if 'size' in kwargs: 
+            if debug==True:print("Making Structure with size: ", size)
+            newsize = size
+        else:
+            newsize = self.extents
+        
+        if 'center' in kwargs:
+            if debug==True:print("Making Structure with Center: ", cent)
+            newcent = cent
+        else:
+            newcent = self.center
+        newcopy = Block(newcent, newvec, size=newsize)
+        
+        return newcopy
+
 
     def _calculate_verts(self):
         """
@@ -828,9 +889,7 @@ class Block(Structure):
             unit_vec = npvec/np.linalg.norm(npvec)
             self.calculated_magnitudes[index] = np.linalg.norm(npvec)
             self.normalized_vecs[index] = unit_vec
-        
-        
-
+            
     def calculate_vectors(self):
         """ 
         Using the vertices, calculate the edge vectors that describe the structure. This is necessary for MPB/MEEP.
@@ -838,7 +897,6 @@ class Block(Structure):
         """
         pass
                 
-        
     @classmethod
     def from_bounds(cls, list_of_bounds:list):
         """
@@ -858,20 +916,20 @@ class Block(Structure):
 
         return cls(center=center, vectors=list_of_vectors, size=magnitudes)
 
-    @classmethod
-    def from_vertices(cls, list_of_vertices:list):
-        """ 
-        Create a parallelepiped from a list of 8  (x,y,z) vertices. Unfortunately, I'm not yet sure how to determine which points are connected to form each face. I think this might need to be passed as an ordered list. Lumerical requires a counterclockwise specification and then it extrudes in the third dimension. This prevents slanted things, so for now I'm going to ignore this and have the class use the basis vectors as the default. 
-        """
-        vert_array = np.zeros((8,3))
-        for index, vertex in enumerate(list_of_vertices):
-            try:
-                npvert = np.asarray(vertex)
-                vert_array[index, :] = npvert
-            except Exception as e:
-                print(e)
+    # @classmethod
+    # def from_vertices(cls, list_of_vertices:list):
+    #     """ 
+    #     Create a parallelepiped from a list of 8  (x,y,z) vertices. Unfortunately, I'm not yet sure how to determine which points are connected to form each face. I think this might need to be passed as an ordered list. Lumerical requires a counterclockwise specification and then it extrudes in the third dimension. This prevents slanted things, so for now I'm going to ignore this and have the class use the basis vectors as the default. 
+    #     """
+    #     vert_array = np.zeros((8,3))
+    #     for index, vertex in enumerate(list_of_vertices):
+    #         try:
+    #             npvert = np.asarray(vertex)
+    #             vert_array[index, :] = npvert
+    #         except Exception as e:
+    #             print(e)
         
-        return cls(vert_array)
+    #     return cls(vert_array)
     
 
 def NearestNeighbors(points, radius, neighborhood_range, a_mag=1.0):
@@ -905,21 +963,6 @@ def NearestNeighbors(points, radius, neighborhood_range, a_mag=1.0):
 
 
 if __name__ == "__main__":
-    x = y = z = 1
-    
-    import matplotlib.pyplot as plt
 
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-
-    
-    e1=(1.0, 1, 0.0)
-    e2=(0.0, 1.0, 1.0)
-    e3=(0.0, 0.0, 1.0)
-
-    block = Block.from_vectors(center=[.5,.5,.5], list_of_vectors=[e1, e2, e3], magnitudes= [2,1,1])
-    vertices = block.vertices
-    ax.scatter(xs=vertices[:, 0], ys = vertices[:,1], zs=vertices[:,2])
-    edges = block.edge_array
-    for n in range(0, 12):
-        ax.plot([edges[0,n,0],edges[1,n,0]], [edges[0,n,1],edges[1,n,1]], [edges[0,n,2], edges[1,n,2]])
+    block = Block(center=[0,0,0], vectors=[[1,1,0], [0,1,1], [1,0,1]])
+    print(block.normalized_vecs)
