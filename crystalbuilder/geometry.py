@@ -132,13 +132,13 @@ class SuperCell():
                 for m in self._instructures:
                     for n in range(0, numrot):
                         if self.point_style == 'center':
-                            newpoints = vm.rotate([m.center], theta=(n*deg), relative_point=self.cellcenter, unit='degrees')
+                            newpoints = vm.rotate([m.center], theta=(n*deg), relative_point=self.cellcenter, unit='degrees') # type: ignore
                             #print("Newpoints: ", newpoints)
-                            self.structures.append(m.copy(center=newpoints))
+                            self.structures.append(m.copy(center=newpoints)) #type: ignore
                         elif self.point_style == 'vertices':    
-                            newpoints = vm.rotate(m.vertices, theta=(n*deg), relative_point=self.cellcenter, unit='degrees')
+                            newpoints = vm.rotate(m.vertices, theta=(n*deg), relative_point=self.cellcenter, unit='degrees') #type: ignore
                             #print("Newpoints: ", newpoints)
-                            self.structures.append(m.copy(vertices=newpoints))
+                            self.structures.append(m.copy(vertices=newpoints))#type: ignore
             else:
                 print("Sorry, this method is only made to rotate and make new copies. Hopefully this will be fixed soon.")
 
@@ -805,7 +805,8 @@ class Block(Structure):
         self._calculate_verts()
         self._calculate_edges()
 
-                
+    
+    
     def copy(self, **kwargs):
         """
         Keyword Args
