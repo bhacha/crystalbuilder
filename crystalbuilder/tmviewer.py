@@ -71,7 +71,6 @@ def _visualize_block(block, **kwargs):
     translate = tmat.shift_to(new_position=center)
     transform = translate @ linear_transform
     obj = tm.primitives.Box(extents=extents, transform=transform, **kwargs)
-    print(obj)
     return obj
 
 def _visualize_supercell(SuperCell, **kwargs):
@@ -84,6 +83,7 @@ def _visualize_supercell(SuperCell, **kwargs):
         elif isinstance(structure, geo.Block):
             objects.append(_visualize_block(structure, **kwargs))
     return objects
+
 
 
 
