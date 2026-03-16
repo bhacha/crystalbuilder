@@ -5,7 +5,11 @@ try:
 except PackageNotFoundError:
     __version__ = "unknown"
 
-__all__ = ["convert", "geometry", "lattice", "vectors","bilbao", "viewer", "conversions", "tmviewer"]
+
+__all__ = ["geometry", "lattice", "vectors", "convert", "bilbao", "viewer"]
+
+
+#["convert", "geometry", "lattice", "vectors", "bilbao", "config"]
 
 
 

@@ -1,8 +1,16 @@
-import crystalbuilder
+
 import crystalbuilder.geometry as geo
-from crystalbuilder.utils import TransformationMatrix as tmat
+from crystalbuilder.utilities.utils import TransformationMatrix as tmat
 import trimesh as tm
 
+
+
+
+class CustomScene(tm.Scene):
+    def __init__(self, **kwargs):
+        super().__init__(self, **kwargs)
+        plot_style = kwargs.get("plotter_style", None) #maybe do something with this eventually.
+        
 
 def add_to_visualizer(structures, plot, **kwargs):
     for object in structures:       
@@ -16,7 +24,7 @@ def add_to_visualizer(structures, plot, **kwargs):
             plot.add_geometry(_visualize_supercell(object, **kwargs))
 
 
-def visualize(structures, **kwargs):
+def visualize(structures, plotter_style = None, **kwargs):
     """
     
     Parameters
@@ -24,8 +32,10 @@ def visualize(structures, **kwargs):
     structures : list of geo
 
     """
-    
-    plot = tm.Scene()
+    if plotter_style is None:
+        plot = CustomScene()
+    else:
+        plot = CustomScene(plotter_style=plotter_style)
 
     add_to_visualizer(structures, plot, **kwargs)
     
@@ -71,7 +81,6 @@ def _visualize_block(block, **kwargs):
     translate = tmat.shift_to(new_position=center)
     transform = translate @ linear_transform
     obj = tm.primitives.Box(extents=extents, transform=transform, **kwargs)
-    print(obj)
     return obj
 
 def _visualize_supercell(SuperCell, **kwargs):

@@ -2,8 +2,6 @@ from crystalbuilder import convert
 from crystalbuilder import lattice
 from crystalbuilder import vectors
 from crystalbuilder import bilbao
-import trimesh
-import vedo
 import numpy as np
 import numpy.typing as npt
 

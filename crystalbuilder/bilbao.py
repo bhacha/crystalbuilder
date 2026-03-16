@@ -10,7 +10,7 @@ import numpy as np
 from bs4 import BeautifulSoup
 import math
 import json
-import crystalbuilder.housekeeping.types as cbt    
+import crystalbuilder.utilities.cb_types as cbt    
 
 Literal = cbt.Literal
 Iterable = cbt.Iterable
