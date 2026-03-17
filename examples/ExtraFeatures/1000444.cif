@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------
 #$Date: 2016-02-14 16:26:36 +0200 (Sun, 14 Feb 2016) $
 #$Revision: 176435 $
-#$URL: file:///home/coder/svn-repositories/_RELOADED_COD/cod-reloaded/cif/1/00/04/1000443.cif $
+#$URL: file:///home/coder/svn-repositories/_RELOADED_COD/cod-reloaded/cif/1/00/04/1000444.cif $
 #------------------------------------------------------------------------------
 #
 # This file is available in the Crystallography Open Database (COD),
@@ -10,7 +10,7 @@
 # All data on this site have been placed in the public domain by the
 # contributors.
 #
-data_1000443
+data_1000444
 loop_
 _publ_author_name
 'Maguer, J-J'
@@ -28,9 +28,12 @@ _journal_page_last               51
 _journal_paper_doi               10.1006/jssc.1996.7145
 _journal_volume                  128
 _journal_year                    1997
-_chemical_formula_structural     '(H3 O) (Yb3 F10) (H2 O)'
-_chemical_formula_sum            'F10 H5 O2 Yb3'
-_chemical_name_systematic        'Oxonium triytterbium decafluoride hydrate'
+_chemical_formula_structural     'K (Yb3 F10) (H2 O)'
+_chemical_formula_sum            'F10 H2 K O Yb3'
+_chemical_name_systematic
+;
+Potassium triytterbium decafluoride hydrate - $-delta
+;
 _space_group_IT_number           227
 _symmetry_cell_setting           cubic
 _symmetry_space_group_name_Hall  '-F 4vw 2vw 3'
@@ -39,10 +42,10 @@ _cell_angle_alpha                90
 _cell_angle_beta                 90
 _cell_angle_gamma                90
 _cell_formula_units_Z            16
-_cell_length_a                   15.326(1)
-_cell_length_b                   15.326(1)
-_cell_length_c                   15.326(1)
-_cell_volume                     3599.9
+_cell_length_a                   15.339(1)
+_cell_length_b                   15.339(1)
+_cell_length_c                   15.339(1)
+_cell_volume                     3609.0(4)
 _refine_ls_R_factor_all          0.061
 _cod_depositor_comments
 ;
@@ -60,10 +63,17 @@ _cod_depositor_comments
   Saulius Gra\<zulis
   2014-10-05
 
+  Correcting cell constants and recalculating the cell volume after
+  the abstract of the original paper
+  (http://www.sciencedirect.com/science/article/pii/S0022459696971455)
+
+  Saulius Gra\<zulis
+  2014-10-05
+
 ;
 _cod_original_sg_symbol_H-M      'F d -3 m Z'
-_cod_original_formula_sum        'H5 F10 O2 Yb3'
-_cod_database_code               1000443
+_cod_original_formula_sum        'H2 F10 K O Yb3'
+_cod_database_code               1000444
 loop_
 _symmetry_equiv_pos_as_xyz
 x,y,z
@@ -269,16 +279,17 @@ _atom_site_fract_z
 _atom_site_occupancy
 _atom_site_attached_hydrogens
 _atom_site_calc_flag
-Yb1 Yb3+ 48 f 0.375 0.375 0.0531(1) 1. 0 d
-F1 F1- 96 h 0. 0.8749(4) 0.1251(4) 1. 0 d
-F2 F1- 32 e 0.2118(4) 0.2118(4) 0.2118(4) 1. 0 d
-F3 F1- 32 e 0.0538(4) 0.0538(4) 0.0538(4) 1. 0 d
-O1 O2- 16 d 0.5 0.5 0.5 1. 3 d
-O2 O2- 48 f 0.375 0.375 0.245(2) 0.333333333333333333 2 d
+Yb1 Yb3+ 48 f 0.375 0.375 0.0530(1) 1. 0 d
+F1 F1- 96 h 0. 0.8761(3) 0.1239(3) 1. 0 d
+F2 F1- 32 e 0.2131(3) 0.2131(3) 0.2131(3) 1. 0 d
+F3 F1- 32 e 0.0524(3) 0.0524(3) 0.0524(3) 1. 0 d
+K1 K1+ 16 d 0.5 0.5 0.5 1. 0 d
+O2 O2- 48 f 0.375 0.375 0.251(2) 0.333333333333333333 2 d
 loop_
 _atom_type_symbol
 _atom_type_oxidation_number
 Yb3+ 3.000
 F1- -1.000
+K1+ 1.000
 O2- -2.000
 H1+ 1.000
