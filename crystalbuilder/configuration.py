@@ -1,1 +1,1 @@
-viewer_mode = 'vedo' #'vedo' or 'trimesh'
+viewer_mode = 'trimesh' #'vedo' or 'trimesh'

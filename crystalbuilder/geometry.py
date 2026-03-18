@@ -26,8 +26,11 @@ class Structure():
     def __init__(
             self,
             **kwargs
-    ) -> None:
-        pass
+            ) -> None:
+            
+        self.name = kwargs.get("name", None)
+        self.color = kwargs.get("color", None )
+
 
 class SuperCell():
     """
@@ -429,7 +432,7 @@ class Cylinder(Structure):
         """
         This creates a cylinder object centered at `center` with `radius` and `height` as inputted. The `axis` argument can be an integer from 0-2 (for x, y, z ), respectively, or an iterable vector to point along
         """
-        super().__init__()
+        super().__init__(**kwargs)
         self.center = center
         self.original_center = kwargs.get("original_center", center)
         self.ogcenter = self.original_center
@@ -525,6 +528,7 @@ class Sphere(Structure):
         radius,
         **kwargs
     ):
+        super().__init__(**kwargs)
         self.center = center
         self.original_center = kwargs.get("original_center", center)
         self.ogcenter = self.original_center
@@ -587,7 +591,7 @@ class Triangle(Structure):
             center (array_like or None): Center of triangle, shifts vertices if not None
             
         """
-        
+        super().__init__(**kwargs)
         self.height = height
         self._ogverts = np.asarray(vertices)
         self._centroid = kwargs.get("original_center", center)
@@ -747,7 +751,7 @@ class eqTriangle(Triangle):
             return newlist
 
 
-        Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center)
+        Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center, **kwargs)
 
 class Block(Structure):
     """
@@ -775,11 +779,11 @@ class Block(Structure):
     
     """
     
-    def __init__(self, center, vectors, size=None):
+    def __init__(self, center, vectors, size=None, **kwargs):
         """
         Create a Block from a set of vectors, using their magnitudes to define the size by default. This is different than MEEP/MPB, which ignores the size. If `size` is not None, use the passed values to rescale like MEEP/MPB.
         """
-
+        super().__init__(**kwargs)
         self.invec_array = np.array([vectors[0], vectors[1], vectors[2]])
         
         self.input_magnitudes: list|cbt.Iterable|None = size

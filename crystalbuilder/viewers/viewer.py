@@ -7,7 +7,7 @@ import crystalbuilder.lattice
 from importlib import import_module
 
 config_view_mode = config_viewer_mode
-
+print(f"Viewer sees config as: {config_view_mode}")
 
 if config_view_mode == 'vedo':
     from crystalbuilder.viewers.vedo_viewer import *

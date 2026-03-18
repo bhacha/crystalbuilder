@@ -71,7 +71,7 @@ def _visualize_sphere(sphere, **kwargs):
     radius = sphere.radius
     name = str(sphere.center)
     obj = vedo.Sphere(pos=center, r=radius, **kwargs).legend(name)
-    obj.name = name
+    # obj.name = name
     return obj
 
 def _visualize_supercell(SuperCell, **kwargs):

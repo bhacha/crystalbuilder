@@ -17,9 +17,7 @@ This module provides an easy access to all of them while also letting you use th
 try:
     from crystalbuilder.conversions.meep import *
 except Exception as e:
-    print(e)
-    from crystalbuilder.conversions.meep import unpack_supercell
-
+    pass
 
 
 #Check if Lumerical is available and load the conversion functions    
@@ -28,7 +26,26 @@ try:
 except ModuleNotFoundError:
     pass
 
-debug = 'on'
+debug = 'off'
+
+def unpack_supercell(supercell):
+    """Turns supercell into a list of geometry objects
+
+    Parameters
+    ----------
+    supercell : geo.SuperCell()
+        A SuperCell object from geometry.py
+
+    Returns
+    -------
+    [structures]: list
+        list of the geometry objects in SuperCell
+
+    """
+
+    structures = supercell.structures
+    return structures
+
 
 def _geo_to_lumerical(geometry_object, material):
     """
