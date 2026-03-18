@@ -8,8 +8,6 @@ import meep as mp
 
 debug = "off"
 
-
-
 def unpack_supercell(supercell):
     """Turns supercell into a list of geometry objects
 
@@ -61,7 +59,59 @@ def vectorize(list):
     z = list[2]
     return mp.Vector3(x,y,z)
 
+def geo_to_meep(geometry_object, material):
+    """Converts CrystalBuilder geometry object(s) to the corresponding MEEP object(s) with defined material.
 
+    This is a higher level wrapper of the _geo_to_meep function, which I have yet to document. 
+    This simplifies the calling, as it only takes two arguments. 
+
+    Parameters
+    ----------
+    geometry_object : list or Geometry
+        an object or list of objects geometry.py
+    
+    material : mp.Material()
+        MEEP material 
+
+    Returns
+    -------
+    [meep_list]: list
+        list of MEEP objects
+
+    """
+    geom_list = _geo_to_meep(geometry_object, material)
+    newlist = flatten(geom_list)
+    meep_list = flatten(newlist)
+    return meep_list
+
+def geo_to_mpb(geometry_object, material, lattice):
+    """Converts CrystalBuilder geometry object(s) to the corresponding MPB object(s) with defined material.
+
+    This is a higher level wrapper of the _geo_to_meep function, which I have yet to document. 
+    MPB defines geometry on an arbitrary basis determined by the simulation's lattice. This requires an extra parameter, 'lattice'.
+
+    Parameters
+    ----------
+    geometry_object : Geometry or list of Geometry
+        an object or list of objects
+    material : mp.Material()
+        MPB material
+    lattice : mpb.lattice()
+        lattice for MPB simulation, usually assigned to geometry_lattice
+
+
+    Returns
+    -------
+    [mpb_list]: list
+        list of mpb objects
+
+    """
+
+
+    geom_list = _geo_to_meep(geometry_object, material, ismpb=True, lattice=lattice)
+    newlist = flatten(geom_list)
+    mpb_list = flatten(newlist)
+    return mpb_list
 
 def _geo_to_meep(geometry_object, material, ismpb = False, **kwargs):
     """ Lower-level function to convert Geometries into MEEP objects. It's recommended to call the geo_to_meep function instead.
@@ -178,7 +228,7 @@ def _geo_to_meep(geometry_object, material, ismpb = False, **kwargs):
                     newcent = mp.cartesian_to_lattice(k, geo_lattice)
                 else:
                     newcent = vectorize(m.center)
-                geom_list.append(mp.Cylinder(radius=m.radius, axis= m.axis, height=m.height, center=newcent, material=material))
+                geom_list.append(mp.Cylinder(radius=m.radius, axis= m.axis, height=m.height, center=newcent, material=material)) #type:ignore
 
             elif isinstance(geometry_object, geo.Triangle):
                 if debug=="on": print("This is running the single triangle")
@@ -221,64 +271,6 @@ def _geo_to_meep(geometry_object, material, ismpb = False, **kwargs):
 
     return geom_list
 
-
-
-def geo_to_meep(geometry_object, material):
-    """Converts CrystalBuilder geometry object(s) to the corresponding MEEP object(s) with defined material.
-
-    This is a higher level wrapper of the _geo_to_meep function, which I have yet to document. 
-    This simplifies the calling, as it only takes two arguments. 
-
-    Parameters
-    ----------
-    geometry_object : list or Geometry
-        an object or list of objects geometry.py
-    
-    material : mp.Material()
-        MEEP material 
-
-    Returns
-    -------
-    [meep_list]: list
-        list of MEEP objects
-
-    """
-    geom_list = _geo_to_meep(geometry_object, material)
-    newlist = flatten(geom_list)
-    meep_list = flatten(newlist)
-    return meep_list
-
-
-def geo_to_mpb(geometry_object, material, lattice):
-    """Converts CrystalBuilder geometry object(s) to the corresponding MPB object(s) with defined material.
-
-    This is a higher level wrapper of the _geo_to_meep function, which I have yet to document. 
-    MPB defines geometry on an arbitrary basis determined by the simulation's lattice. This requires an extra parameter, 'lattice'.
-
-    Parameters
-    ----------
-    geometry_object : Geometry or list of Geometry
-        an object or list of objects
-    material : mp.Material()
-        MPB material
-    lattice : mpb.lattice()
-        lattice for MPB simulation, usually assigned to geometry_lattice
-
-
-    Returns
-    -------
-    [mpb_list]: list
-        list of mpb objects
-
-    """
-
-
-    geom_list = _geo_to_meep(geometry_object, material, ismpb=True, lattice=lattice)
-    newlist = flatten(geom_list)
-    mpb_list = flatten(newlist)
-    return mpb_list
-
-
 def to_mpb_lattice(geolattice):
     """converts crystalbuilder Lattice to the mpb lattice
 
@@ -299,12 +291,11 @@ def to_mpb_lattice(geolattice):
         basis1 = np.asarray(geolattice.a1)
         basis2 = np.asarray(geolattice.a2)
         basis3 = np.asarray(geolattice.a3)
-        lattice = mp.Lattice(size = magnitude, basis1 = basis1, basis2 = basis2, basis3=basis3)
+        lattice = mp.Lattice(size = magnitude, basis1 = basis1, basis2 = basis2, basis3=basis3) #type:ignore
         return lattice 
     else:
         print("Error: Please pass a crystalbuilder lattice object as the argument")
-        
-        
+           
 def to_geo_lattice(mpblattice):
     """converts mpb's `Lattice` to the CrystalBuilder Lattice
 

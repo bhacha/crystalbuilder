@@ -33,6 +33,8 @@ def flatten(list):
     try:
         if isinstance(list, list):
             flat_list = [item for sublist in list for item in sublist]
+        else:
+            flat_list = list
     except:
         flat_list = list
     return flat_list
