@@ -6,6 +6,13 @@ except PackageNotFoundError:
     __version__ = "unknown"
 
 
+import crystalbuilder.geometry as geometry
+import crystalbuilder.lattice as lattice
+import crystalbuilder.vectors as vectors
+import crystalbuilder.convert as convert
+import crystalbuilder.bilbao as bilbao
+import crystalbuilder.viewers.viewer as viewer
+
 __all__ = ["geometry", "lattice", "vectors", "convert", "bilbao", "viewer"]
 
 

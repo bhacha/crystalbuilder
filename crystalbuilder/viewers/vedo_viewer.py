@@ -1,6 +1,7 @@
 import vedo
 import crystalbuilder.geometry as geo
 from crystalbuilder.utilities.utils import TransformationMatrix
+from vedo import write
 
 vedo.settings.default_backend='vtk'
 

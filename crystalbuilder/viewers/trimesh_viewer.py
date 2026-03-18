@@ -72,7 +72,6 @@ def _visualize_sphere(sphere, **kwargs):
     radius = sphere.radius
     transform = tmat.shift_and_rotate(new_position=center, axis_vector=[0,0,1])
     obj = tm.primitives.Sphere(radius=radius, transform=transform, **kwargs)
-    print("Here is a sphere")
     return obj
 
 def _visualize_block(block, **kwargs):
