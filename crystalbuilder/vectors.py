@@ -1,6 +1,6 @@
 import numpy as np
 from numpy._typing._array_like import NDArray
-import crystalbuilder.housekeeping.types as cbt
+import crystalbuilder.utilities.cb_types as cbt
 from matplotlib import pyplot as plt
 
 debug = 'off'

@@ -2,8 +2,6 @@ from crystalbuilder import convert
 from crystalbuilder import lattice
 from crystalbuilder import vectors
 from crystalbuilder import bilbao
-import trimesh
-import vedo
 import numpy as np
 import numpy.typing as npt
 
@@ -37,7 +35,7 @@ class TransformationMatrix:
         val1_arr = np.asarray(value1)
         val2_arr = np.asarray(value2)
         if np.array_equiv(val1_arr, val2_arr):
-            print(f"{val1_arr} is the same as {val2_arr}; No rotating performed.")
+            #print(f"{val1_arr} is the same as {val2_arr}; No rotating performed.")
             return True
         else:
             return False

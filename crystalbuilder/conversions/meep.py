@@ -1,0 +1,325 @@
+import numpy as np
+from crystalbuilder.conversions.t3d import geo_to_tidy3d
+from crystalbuilder import lattice as lat
+from crystalbuilder import geometry as geo
+from crystalbuilder.conversions import lumc as lc
+import platform
+import meep as mp
+
+debug = "off"
+
+def unpack_supercell(supercell):
+    """Turns supercell into a list of geometry objects
+
+    Parameters
+    ----------
+    supercell : gm.SuperCell()
+        A SuperCell object from geometry.py
+
+    Returns
+    -------
+    [structures]: list
+        list of the geometry objects in SuperCell
+
+    """
+
+    structures = supercell.structures
+    return structures
+
+def flatten(list):
+    """ Some of these methods can accidentally create nested lists, so this function can be used in try statements to correct those """
+    try:
+        if isinstance(list, list):
+            flat_list = [item for sublist in list for item in sublist]
+        else:
+            flat_list = list
+    except:
+        flat_list = list
+    return flat_list
+
+def vectorize(list):
+    """Converts list of x,y,z coordinates to mp.Vector3 object
+
+    This simply assigns the first 3 indices to 'x','y','z' and returns the mp.Vector3('x','y','z'). 
+    Thus it will also work for any index-able data format (e.g. numpy arrays and existing mp.Vector3 objects)
+
+    Parameters
+    ----------
+    list : ArrayLike
+        an ArrayLike object of length 3 (anything beyond will be ignored)
+
+    Returns
+    -------
+    mp.Vector3()
+        mp.Vector3 object mp.Vector3(x,y,z)
+
+    """
+    x = list[0]
+    y = list[1]
+    z = list[2]
+    return mp.Vector3(x,y,z)
+
+def geo_to_meep(geometry_object, material):
+    """Converts CrystalBuilder geometry object(s) to the corresponding MEEP object(s) with defined material.
+
+    This is a higher level wrapper of the _geo_to_meep function, which I have yet to document. 
+    This simplifies the calling, as it only takes two arguments. 
+
+    Parameters
+    ----------
+    geometry_object : list or Geometry
+        an object or list of objects geometry.py
+    
+    material : mp.Material()
+        MEEP material 
+
+    Returns
+    -------
+    [meep_list]: list
+        list of MEEP objects
+
+    """
+    geom_list = _geo_to_meep(geometry_object, material)
+    newlist = flatten(geom_list)
+    meep_list = flatten(newlist)
+    return meep_list
+
+def geo_to_mpb(geometry_object, material, lattice):
+    """Converts CrystalBuilder geometry object(s) to the corresponding MPB object(s) with defined material.
+
+    This is a higher level wrapper of the _geo_to_meep function, which I have yet to document. 
+    MPB defines geometry on an arbitrary basis determined by the simulation's lattice. This requires an extra parameter, 'lattice'.
+
+    Parameters
+    ----------
+    geometry_object : Geometry or list of Geometry
+        an object or list of objects
+    material : mp.Material()
+        MPB material
+    lattice : mpb.lattice()
+        lattice for MPB simulation, usually assigned to geometry_lattice
+
+
+    Returns
+    -------
+    [mpb_list]: list
+        list of mpb objects
+
+    """
+
+
+    geom_list = _geo_to_meep(geometry_object, material, ismpb=True, lattice=lattice)
+    newlist = flatten(geom_list)
+    mpb_list = flatten(newlist)
+    return mpb_list
+
+def _geo_to_meep(geometry_object, material, ismpb = False, **kwargs):
+    """ Lower-level function to convert Geometries into MEEP objects. It's recommended to call the geo_to_meep function instead.
+
+    Parameters
+    -----------
+    geometry_object : list or Geometry
+        an object or list of objects from geometry.py
+
+    material : mp.Material()
+        MEEP material for the converted object
+
+    ismpb : bool
+        MPB is a MEEP submodule that works for photonic crystals. The coordinate space is different than conventional MEEP. This arg determines if the resulting objects will use MPB coordinates or the MEEP ones (default)
+
+    **kwargs : string
+        lattice: mpb.lattice()
+            lattice for building MPB geometry, only necessary if mpb_mode is True. This is handled automatically by the higher level geo_to_mpb function
+              
+        
+    Returns
+    -------
+    [geom_list] : list
+        list of MEEP objects
+    
+    """
+
+    mpb_mode = ismpb
+    #print("MPB Mode is ", str(mpb_mode))
+    geom_list = []
+    if mpb_mode == True:
+        geo_lattice = kwargs.get("lattice", None)
+    else:
+        geo_lattice = None
+
+    try:
+        for m in geometry_object:
+            if isinstance(m, geo.SuperCell):
+                if debug=="on": print("This is running the iterable Supercell")
+                if ismpb == True: 
+                    innerlist = _geo_to_meep(m, material, ismpb=mpb_mode, lattice=geo_lattice)
+                    geom_list.append(innerlist)
+                else:
+                    innerlist = _geo_to_meep(m, material, ismpb=mpb_mode)
+                    geom_list.append(innerlist)
+
+            elif isinstance(m, geo.Cylinder):
+                if debug=="on": print("This is running the iterable cylinder")
+                
+                if ismpb == True: 
+                    k = vectorize(m.center)
+                    ax = vectorize(m.axis)
+                    newcent = mp.cartesian_to_lattice(k, geo_lattice)
+                    newax = mp.cartesian_to_lattice(ax, geo_lattice)
+                else:
+                    newcent = vectorize(m.center)
+                    newax = vectorize(m.axis)
+
+                item = mp.Cylinder(radius=m.radius, axis=newax, height=float(m.height), center=newcent, material=material)
+                geom_list.append(item)
+
+            elif isinstance(m, geo.Triangle):
+                if debug=="on": print("This is running the iterable triangle")
+                
+                newverts = []
+                for k in m.vertlist:
+                    k = vectorize(k)
+                    if mpb_mode == True:
+                        newverts.append(mp.cartesian_to_lattice(k, geo_lattice))
+                    elif mpb_mode == False:
+                        newverts.append(k)
+
+                item = mp.Prism(vertices = newverts, axis = vectorize(m.axis), height = m.height, material=material)
+                geom_list.append(item)
+
+            elif isinstance(m, geo.Sphere):
+                if ismpb == True: 
+                    k = vectorize(m.center)
+                    newcent = mp.cartesian_to_lattice(k, geo_lattice)
+                else:
+                    newcent = vectorize(m.center)
+
+                item = mp.Sphere(radius=m.radius,center=newcent, material=material)
+                geom_list.append(item)
+
+            elif isinstance(m, geo.Block):
+                if debug=="on": print("This is running the iterable Block")
+                
+                newvects = []
+                for k in m.normalized_vecs:
+                    k = vectorize(k)
+                    if mpb_mode == True:
+                        newvects.append(mp.cartesian_to_lattice(k, geo_lattice))
+                    elif mpb_mode == False:
+                        newvects.append(k)
+                print("Here is a block")
+                item = mp.Block(size=m.extents, e1=newvects[0], e2=newvects[1], e3=newvects[2], material=material)
+                geom_list.append(item)
+
+
+    except TypeError:
+            if isinstance(geometry_object, geo.SuperCell):
+                if debug=="on": print("This is running the single Supercell")
+                structs = unpack_supercell(geometry_object)
+                m = structs
+                newlist = _geo_to_meep(m, material)
+                geom_list.append(newlist)
+
+            elif isinstance(geometry_object, geo.Cylinder):
+                m = geometry_object
+                if debug=="on": print("This is running the single cylinder")
+                if ismpb == True: 
+                    k = vectorize(m.center)
+                    newcent = mp.cartesian_to_lattice(k, geo_lattice)
+                else:
+                    newcent = vectorize(m.center)
+                geom_list.append(mp.Cylinder(radius=m.radius, axis= m.axis, height=m.height, center=newcent, material=material)) #type:ignore
+
+            elif isinstance(geometry_object, geo.Triangle):
+                if debug=="on": print("This is running the single triangle")
+                m = geometry_object
+                if ismpb == True:
+                    newverts = []
+                    for k in m.verttuple:
+                        k = vectorize(k)
+                        newverts.append(mp.cartesian_to_lattice(k, geo_lattice))
+                else:
+                    newverts = vectorize(m.verttuple)
+                geom_list.append(mp.Prism(vertices = newverts, axis = vectorize(m.axis), height = m.height, material=material))
+
+            elif isinstance(geometry_object, geo.Sphere):
+                m = geometry_object
+                if ismpb == True: 
+                    k = vectorize(m.center)
+                    newcent = mp.cartesian_to_lattice(k, geo_lattice)
+                else:
+                    newcent = vectorize(m.center)
+
+                item = mp.Cylinder(radius=m.radius, center=newcent, material=material)
+                geom_list.append(item)
+                
+            elif isinstance(geometry_object, geo.Block):
+                if debug=="on": print("This is running the iterable Block")
+                m = geometry_object
+                newvects = []
+                for k in m.normalized_vecs:
+                    k = vectorize(k)
+                    if mpb_mode == True:
+                        newvects.append(mp.cartesian_to_lattice(k, geo_lattice))
+                    elif mpb_mode == False:
+                        newvects.append(k)
+                print("Here is a block")
+                item = mp.Block(size=m.extents, e1=newvects[0], e2=newvects[1], e3=newvects[2], material=material)
+                geom_list.append(item)
+
+
+
+    return geom_list
+
+def to_mpb_lattice(geolattice):
+    """converts crystalbuilder Lattice to the mpb lattice
+
+    Parameters
+    ----------
+    lat.Lattice() 
+        CrystalBuilder lattice object
+        
+
+    Returns
+    -------
+    mpblattice : mp.Lattice()
+        mpb/MEEP lattice object
+    """
+
+    if isinstance(geolattice, lat.Lattice):
+        magnitude = np.asarray(geolattice.magnitude)
+        basis1 = np.asarray(geolattice.a1)
+        basis2 = np.asarray(geolattice.a2)
+        basis3 = np.asarray(geolattice.a3)
+        lattice = mp.Lattice(size = magnitude, basis1 = basis1, basis2 = basis2, basis3=basis3) #type:ignore
+        return lattice 
+    else:
+        print("Error: Please pass a crystalbuilder lattice object as the argument")
+           
+def to_geo_lattice(mpblattice):
+    """converts mpb's `Lattice` to the CrystalBuilder Lattice
+
+    Parameters
+    ----------
+    mpblattice : mp.Lattice()
+        mpb/MEEP lattice object
+
+
+    Returns
+    -------
+    lat.Lattice()
+        CrystalBuilder lattice object
+        
+
+    """
+
+    if isinstance(mpblattice, mp.Lattice):
+        magnitude = np.asarray(mpblattice.size)
+        basis1 = np.asarray(mpblattice.basis1)
+        basis2 = np.asarray(mpblattice.basis2)
+        basis3 = np.asarray(mpblattice.basis3)
+        lattice = lat.Lattice(a1=basis1, a2=basis2, a3=basis3, magnitude=magnitude)
+        return lattice 
+    else:
+        print("Error: Please pass a MEEP lattice object as the argument")
+

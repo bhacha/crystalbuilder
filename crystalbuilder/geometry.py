@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
 import copy
-import crystalbuilder.housekeeping.types as cbt
+import crystalbuilder.utilities.cb_types as cbt
 import scipy.spatial as scs
 from typing import Literal
 from typing import TYPE_CHECKING
@@ -893,7 +893,7 @@ class Block(Structure):
             
     def calculate_vectors(self):
         """ 
-        Using the vertices, calculate the edge vectors that describe the structure. This is necessary for MPB/MEEP.
+        Using the vertices, calculate the edge vectors that describe the structure. I don't know if this is necessary, so I'm leaving it as a placeholder for now.
         
         """
         pass

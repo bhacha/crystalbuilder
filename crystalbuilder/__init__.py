@@ -5,7 +5,18 @@ try:
 except PackageNotFoundError:
     __version__ = "unknown"
 
-__all__ = ["convert", "geometry", "lattice", "vectors","bilbao", "viewer", "conversions", "tmviewer"]
+
+import crystalbuilder.geometry as geometry
+import crystalbuilder.lattice as lattice
+import crystalbuilder.vectors as vectors
+import crystalbuilder.convert as convert
+import crystalbuilder.bilbao as bilbao
+import crystalbuilder.viewers.viewer as viewer
+
+__all__ = ["geometry", "lattice", "vectors", "convert", "bilbao", "viewer"]
+
+
+#["convert", "geometry", "lattice", "vectors", "bilbao", "config"]
 
 
 
