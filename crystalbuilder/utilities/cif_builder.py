@@ -55,7 +55,8 @@ class CIF_structure:
         
         change_to_lattice = np.linalg.inv(change_to_cartesian)
         
-        self.lattice_vectors = np.matmul(change_to_lattice, scaled_cart).round(3) + 0 #tiny numbers get truncated to 0, but the minus sign is preserved. Adding 0 fixes that.
+        self.lattice_vector_matrix = np.matmul(change_to_lattice, scaled_cart).round(3) + 0 #tiny numbers get truncated to 0, but the minus sign is preserved. Adding 0 fixes that.
+        self.lattice_vectors = [self.lattice_vector_matrix[:,0], self.lattice_vector_matrix[:,1], self.lattice_vector_matrix[:,2]]
 
     def extract_lattice_info(self):
         self.space_group = self.dictionary['Space Group']
@@ -83,6 +84,11 @@ class CIF_structure:
     def atom_formats(self):
         return self.atom_format_dictionary
 
+    @atom_formats.setter
+    def _set_atom_formats(self, updated_dictionary):
+        self.atom_format_dictionary.update(updated_dictionary)
+        
+        
     def _build_generic_atoms(self, radius):
         positions = list(self.dictionary['positions'].values())
         self.generic_atoms = self._build_atoms(positions, radius)
@@ -105,6 +111,7 @@ class CIF_structure:
             atom label
 
         """
+        if radius is None: radius = .05
         color = kwargs.get('color', 'w')
         name = kwargs.get('name', 'atom')
         sphere_list = []
