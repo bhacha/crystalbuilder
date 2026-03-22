@@ -49,7 +49,7 @@ class Lattice:
             a1: npt.ArrayLike = np.array([1,0,0]),
             a2: npt.ArrayLike= np.array([0,1,0]),
             a3: npt.ArrayLike= np.array([0,0,1]),
-            magnitude = np.array([1,1,1]),
+            magnitude:npt.ArrayLike = np.array([1,1,1]),
             **kwargs):
         """
         The Lattice class can be initialized with specified a1, a2, a3 vectors and magnitude
