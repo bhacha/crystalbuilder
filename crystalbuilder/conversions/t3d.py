@@ -81,6 +81,22 @@ def _convert_cyl(geometry_object, material):
     tdgeom = Transformed(geometry = Cylinder(radius=m.radius, axis= 2, length=m.height, center=[0,0,0]), transform=rot_mat)
     return tdgeom
 
+def _convert_sphere(geometry_object, material):
+    """ Put the structure at the origin, do the rotation, then shift it to the correct spot."""
+    m = geometry_object
+    tdgeom = Sphere(radius=m.radius, center=m.center)
+    return tdgeom
+ 
+def _convert_block(geometry_object, material):
+    """ Put the structure at the origin, do the rotation, then shift it to the correct spot."""
+    m = geometry_object
+    center = flatten(m.center)
+    size = m.extents
+    transform_matrix = m.homogeneous_transform_matrix
+    tdgeom = Transformed(geometry = Box(size=size, center=center), transform=transform_matrix)
+    return tdgeom
+
+
 def _geo_to_tidy3d(geometry_object, material, **kwargs):
     """Converts geometry object (or supercell) to the Tidy3D equivalent. Note that Tidy3D values always include units (microns by default).
 
@@ -98,8 +114,18 @@ def _geo_to_tidy3d(geometry_object, material, **kwargs):
                 geom_list.append(innerlist)
 
             elif isinstance(m, geo.Cylinder):
-                if debug=="on": print("This is running the iterable cylinder")
+                if debug=="on": print("This is running the iterable Cylinder")
                 tdgeom = _convert_cyl(m, material)
+                geom_list.append(tdgeom)
+                
+            elif isinstance(m, geo.Sphere):
+                if debug=="on": print("This is running the iterable Sphere")
+                tdgeom = _convert_sphere(m, material)
+                geom_list.append(tdgeom)
+                
+            elif isinstance(m, geo.Block):
+                if debug=="on": print("This is running the iterable Block")
+                tdgeom = _convert_block(m, material)
                 geom_list.append(tdgeom)
 
     except TypeError:
@@ -113,8 +139,19 @@ def _geo_to_tidy3d(geometry_object, material, **kwargs):
             elif isinstance(geometry_object, geo.Cylinder):
                 m = geometry_object
                 if debug=="on": print("This is creating a single cylinder named")
-                tdgeom = _convert_cyl(m, material)
+                tdgeom = _convert_cyl(geometry_object, material)
                 geom_list.append(tdgeom)
+                
+            elif isinstance(geometry_object, geo.Sphere):
+                if debug=="on": print("This is running the single Sphere")
+                tdgeom = _convert_sphere(geometry_object, material)
+                geom_list.append(tdgeom)
+                
+            elif isinstance(geometry_object, geo.Block):
+                if debug=="on": print("This is running the single Block")
+                tdgeom = _convert_block(geometry_object, material)
+                geom_list.append(tdgeom)
+
 
     return geom_list
 

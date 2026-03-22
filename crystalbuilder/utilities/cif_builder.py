@@ -25,7 +25,7 @@ class CIF_structure:
         
     @classmethod
     def from_file(cls, filename):
-        cif_data = cifr.CIF_File(filename)
+        cif_data = cifr.CIF_file(filename)
         dictionary = cif_data.data
         return cls(dictionary)
     

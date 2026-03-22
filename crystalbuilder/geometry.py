@@ -4,7 +4,10 @@ from __future__ import annotations
 import numpy as np
 from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
+from crystalbuilder.utilities.utils import TransformationMatrix as tmat
 import copy
+
+
 import crystalbuilder.utilities.cb_types as cbt
 import scipy.spatial as scs
 from typing import Literal
@@ -30,7 +33,7 @@ class Structure():
             
         self.name = kwargs.get("name", None)
         self.color = kwargs.get("color", None )
-
+        self.center = None
 
 class SuperCell():
     """
@@ -845,6 +848,27 @@ class Block(Structure):
         
         return newcopy
 
+    @property
+    def transform_matrix(self):
+        """ Return the transformation matrix that morphs an x-y-z aligned box into this block """
+        linear_transform = tmat.transform(self.normalized_vecs)
+        self._no_translation_transformation_matrix = linear_transform
+        return linear_transform
+    
+    @property
+    def homogeneous_transform_matrix(self):
+        """ Same as transform_matrix, but also takes into account the translation from (0,0,0) to wherever the block is. This may work better for some situations (like Trimesh)"""
+        linear_transform = self.transform_matrix
+        translate = tmat.shift_to(new_position=self.center)
+        transform = translate @ linear_transform
+        self.full_transformation_matrix = transform
+        return transform
+    
+    @transform_matrix.setter
+    @homogeneous_transform_matrix.setter 
+    def _set_transform_matrix(self,*args, **kwargs):
+        print("You cannot change the transformation matrix after defining the input vectors")
+    
 
     def _calculate_verts(self):
         """

@@ -10,7 +10,6 @@ class CustomScene(vedo.Plotter):
     def __init__(self, axes, **kwargs):
         super().__init__(self, axes, **kwargs)
 
-        
 def add_to_visualizer(structures, plot, **kwargs):
     try:
         for object in structures:       

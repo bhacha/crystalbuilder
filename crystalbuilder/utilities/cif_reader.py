@@ -1,7 +1,7 @@
 import re
    
  
-class CIF_File:
+class CIF_file:
     """
     A class for opening and parsing CIF files containing crystallographic data.
     
@@ -113,5 +113,5 @@ class CIF_File:
 if __name__ == "__main__":
     
     cif = "1000443.cif"
-    data = CIF_File(cif)
+    data = CIF_file(cif)
     data.unlabeled_positions

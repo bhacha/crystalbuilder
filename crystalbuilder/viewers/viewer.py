@@ -6,6 +6,13 @@ import crystalbuilder.geometry as geo
 import crystalbuilder.lattice 
 from importlib import import_module
 
+"""
+This doesn't work and I don't know if there's a good way to have this module work as I want it to. It's imported immediately as part of importing CrystalBuilder, which means that it's imported with the default view_mode. 
+
+If I take it out of the crystalbuilder __init__, then it's going to cause breaking changes in existing notebooks/code. That's worse than simply importing both and having to specify vedo.visualizer or whatever
+
+"""
+
 config_view_mode = config_viewer_mode
 print(f"Viewer sees config as: {config_view_mode}")
 
