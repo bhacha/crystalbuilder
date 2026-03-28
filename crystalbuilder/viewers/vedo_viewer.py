@@ -21,7 +21,8 @@ def add_to_visualizer(structures, plot, **kwargs):
                 plot += _visualize_block(object, **kwargs)
             elif isinstance(object, geo.SuperCell):
                 plot += _visualize_supercell(object, **kwargs)
-                
+            else:
+                print(f"Error with type {type(object)}")
     except TypeError: # Raised if the input isn't a list
         add_to_visualizer([structures], plot, **kwargs) #I'll put it in a list for you :)
 

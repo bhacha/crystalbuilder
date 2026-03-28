@@ -1,5 +1,6 @@
 import crystalbuilder.geometry as geo
 import crystalbuilder.lattice
+import crystalbuilder.bilbao as cbb
 import crystalbuilder.utilities.cif_reader as cifr
 from crystalbuilder.utilities.utils import TransformationMatrix as tmat
 import numpy as np
@@ -75,7 +76,8 @@ class CIF_structure:
         positions = self.dictionary['positions']
         atom_list = []
         for atom in positions.keys():
-            gen_atom = self._build_atoms(positions[atom], radius=radius, name=str(atom))
+            symmetry_positions = cbb.get_coordinates(227, origin=positions[atom])
+            gen_atom = self._build_atoms(symmetry_positions, radius=radius, name=str(atom))
             atom_list += gen_atom
         self.labelled_atoms = atom_list
         return self.labelled_atoms
@@ -90,8 +92,12 @@ class CIF_structure:
         
         
     def _build_generic_atoms(self, radius):
+        position_list = []
         positions = list(self.dictionary['positions'].values())
-        self.generic_atoms = self._build_atoms(positions, radius)
+        for position in positions:
+            symmetry_positions = cbb.get_coordinates(227, origin=position, output_array=False)
+            position_list += symmetry_positions
+        self.generic_atoms = self._build_atoms(position_list, radius)
         return self.generic_atoms
         
 

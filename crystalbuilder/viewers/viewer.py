@@ -5,26 +5,68 @@ from crystalbuilder.utilities.utils import TransformationMatrix
 import crystalbuilder.geometry as geo
 import crystalbuilder.lattice 
 from importlib import import_module
-
-"""
-This doesn't work and I don't know if there's a good way to have this module work as I want it to. It's imported immediately as part of importing CrystalBuilder, which means that it's imported with the default view_mode. 
-
-If I take it out of the crystalbuilder __init__, then it's going to cause breaking changes in existing notebooks/code. That's worse than simply importing both and having to specify vedo.visualizer or whatever
-
-"""
+import crystalbuilder.viewers.vedo_viewer as vv
+import crystalbuilder.viewers.trimesh_viewer as tv
 
 config_view_mode = config_viewer_mode
-print(f"Viewer sees config as: {config_view_mode}")
 
-if config_view_mode == 'vedo':
-    from crystalbuilder.viewers.vedo_viewer import *
-   
-elif config_view_mode == 'trimesh':
-    from crystalbuilder.viewers.trimesh_viewer import *
+
+class WrapScene:
+    def __init__(self, plot_object):
+        self.plot = plot_object
+
+    def show(self):
+        return self.plot.show()
     
-else: 
-    print("No view mode specified in config. Using Vedo.")
-    from crystalbuilder.viewers.vedo_viewer import *
+    def close(self):
+        if type(self.plot).__name__ == 'Plotter':
+            print(type(self.plot).__name__)
+            self.plot.close()
+        else:
+            print(type(self.plot).__name__)
+            pass
+        
+
+def visualize(structures, mode='vedo', **kwargs):
+    """
+    
+    Parameters
+    -----------
+    structures : list of geo
+
+    """
+    if mode == 'trimesh':
+        plot = tv.visualize(structures=structures)
+        tv.add_to_visualizer(structures, plot)
+    else:
+        print(f"mode:{mode}")
+        plot = vv.visualize(structures=structures, plotter_style=3, **kwargs)
+        vv.add_to_visualizer(structures, plot, **kwargs)
+    # for object in structures:
+    #     if isinstance(object, geo.Structure):
+    #         if isinstance(object, geo.Cylinder):
+    #             obj  = visualize_cylinder(object, **kwargs)
+    #             plot += obj
+    #         elif isinstance(object, geo.SuperCell):
+    #             obj  = visualize_supercell(object, **kwargs)
+    #             plot += obj
+    #         elif isinstance(object, geo.Sphere):
+    #             obj = visualize_sphere(object, **kwargs)
+    #             plot += obj
+    #     elif isinstance(object, list):
+    #         for n in object:
+    
+    plot_object = WrapScene(plot)            
+            
+    return plot_object
+
+def add_to_visualizer(structures, plot, **kwargs):
+    if type(plot).__name__ == 'Plotter':
+        print(type(plot).__name__)
+        vv.add_to_visualizer(structures, plot)
+    else:
+        print(type(plot).__name__)
+    
 
 
 class Scene:

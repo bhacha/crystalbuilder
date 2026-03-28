@@ -532,11 +532,21 @@ class Sphere(Structure):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.center = center
-        self.original_center = kwargs.get("original_center", center)
+        self.center = self.format_center(center)
+        self.original_center = self.format_center(kwargs.get("original_center", center))
         self.ogcenter = self.original_center
         self.radius = radius
-        
+    
+    def format_center(self, raw_center):
+        """
+        If you pass a nested list to the input it will cause downstream problems. This should clear that up.
+        """
+        if any(isinstance(i, list) for i in raw_center):
+            center = raw_center[0]
+        else:
+            center = raw_center
+        return center
+           
 
     def copy(self, **kwargs):
         """

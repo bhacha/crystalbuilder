@@ -18,7 +18,6 @@ def merge_and_output(scene, filename):
     merged_geometry = merge_geometry(scene)
     output_to_stl(merged_geometry, filename)
 
-
 def merge_geometry(scene):
     """
     Merge meshes in scene

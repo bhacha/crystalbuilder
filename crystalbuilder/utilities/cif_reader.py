@@ -93,7 +93,7 @@ class CIF_file:
 
         for line in self.file_lines[final_index:]:
             split_line = line.split()
-            if len(split_line)>=3:
+            if len(split_line)>=4:
                 atom_label = split_line[0]
                 atom_dictionary["positions"][atom_label] = [split_line[position_indices[0]], 
                                             split_line[position_indices[1]], 
