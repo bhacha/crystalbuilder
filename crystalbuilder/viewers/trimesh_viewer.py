@@ -64,7 +64,7 @@ def _visualize_cylinder(cylinder, **kwargs):
     height = cylinder.height
     axis = cylinder.axis
     transform = tmat.shift_and_rotate(new_position=center, axis_vector=axis)
-    obj = tm.primitives.Cylinder(radius=radius, height=height, transform=transform, **kwargs)
+    obj = tm.primitives.Cylinder(radius=radius, height=height, transform=transform, sections=8, **kwargs)
     return obj
 
 def _visualize_sphere(sphere, **kwargs):
