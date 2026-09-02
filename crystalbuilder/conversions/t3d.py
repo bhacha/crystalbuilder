@@ -1,7 +1,7 @@
 
 import numpy as np
 try:
-    from tidy3d import Transformed, Structure, GeometryGroup, Cylinder, Sphere, Medium, Simulation, PointDipole, C_0, GridSpec, GaussianPulse, Box
+    from tidy3d import Transformed, Structure, GeometryGroup, Cylinder, Sphere, Medium, Simulation, PointDipole, C_0, GridSpec, GaussianPulse, Box, AbstractMedium
 except ModuleNotFoundError:
     pass
 except ImportError:
@@ -182,7 +182,7 @@ def geo_to_tidy3d(geometry_object, material, name="Structure Group", **kwargs):
     geometry_list_raw = _geo_to_tidy3d(geometry_object, material)
     geometry_list =geometry_list_raw
     geometry_group = GeometryGroup(geometries = tuple(geometry_list))
-    if isinstance(material, Medium):
+    if isinstance(material, (Medium, AbstractMedium)):
         medium = material
     else:
         medium = Medium(permittivity = material**2, name=material_name)

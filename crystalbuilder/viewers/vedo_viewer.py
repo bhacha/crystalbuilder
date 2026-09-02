@@ -24,6 +24,7 @@ def add_to_visualizer(structures, plot, **kwargs):
             else:
                 print(f"Error with type {type(object)}")
     except TypeError: # Raised if the input isn't a list
+        print("Not a list, but I'll fix it")
         add_to_visualizer([structures], plot, **kwargs) #I'll put it in a list for you :)
 
 def visualize(structures, plotter_style=3, **kwargs):
@@ -88,10 +89,10 @@ def _visualize_supercell(SuperCell, **kwargs):
 def _visualize_block(block,**kwargs):
     center = block.center
     size = block.extents
-    vectors = block.normalized_vecs
-    transform = TransformationMatrix.transform_in_place(origin=block.center, desired_vectors=vectors)
+    # vectors = block.normalized_vecs
+    # transform = TransformationMatrix.transform_in_place(origin=block.center, desired_vectors=vectors)
     obj = vedo.Box(pos=center, size=size)
-    obj.apply_transform(transform)
+    # obj.apply_transform(transform)
     return obj
 
 

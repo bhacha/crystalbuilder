@@ -20,10 +20,10 @@ class WrapScene:
     
     def close(self):
         if type(self.plot).__name__ == 'Plotter':
-            print(type(self.plot).__name__)
+            # print(type(self.plot).__name__)
             self.plot.close()
         else:
-            print(type(self.plot).__name__)
+            # print(type(self.plot).__name__)
             pass
         
 
@@ -61,11 +61,13 @@ def visualize(structures, mode='vedo', **kwargs):
     return plot_object
 
 def add_to_visualizer(structures, plot, **kwargs):
-    if type(plot).__name__ == 'Plotter':
-        print(type(plot).__name__)
-        vv.add_to_visualizer(structures, plot)
+    if type(plot.plot).__name__ == 'Plotter':
+        # print(type(plot).__name__)
+        vv.add_to_visualizer(structures, plot.plot, **kwargs)
     else:
-        print(type(plot).__name__)
+        # Only Vedo works right now for this.
+        pass
+        # print(type(plot).__name__)
     
 
 

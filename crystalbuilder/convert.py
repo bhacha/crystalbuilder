@@ -4,7 +4,7 @@ from crystalbuilder import lattice as lat
 from crystalbuilder import geometry as geo
 from crystalbuilder.conversions import lumc as lc
 
-
+# pyright: ignore[reportMissingImports]
 
 """
 The real conversion methods are found in crystalbuilder/conversions/
@@ -22,7 +22,7 @@ except Exception as e:
 
 #Check if Lumerical is available and load the conversion functions    
 try:
-    import lumpy.simobjects as so
+    import lumpy.simobjects as so 
 except ModuleNotFoundError:
     pass
 

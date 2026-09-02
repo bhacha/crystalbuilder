@@ -1,29 +1,28 @@
 #Geometry File
 
-from __future__ import annotations
+
+from __future__ import annotations #for typing, introduced in Python 3.7
+import copy
 import numpy as np
-from matplotlib import pyplot as plt
+import scipy.spatial as scs
+
 from crystalbuilder import vectors as vm
 from crystalbuilder.utilities.utils import TransformationMatrix as tmat
-import copy
-
-
 import crystalbuilder.utilities.cb_types as cbt
-import scipy.spatial as scs
-from typing import Literal
-from typing import TYPE_CHECKING
+number = cbt.number
+
+from typing import Literal, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from crystalbuilder.lattice import Lattice
 
-debug = 'off'
+import logging
+import warnings
+
+logger = logging.getLogger(__name__)
 
 
-Iterable = cbt.Iterable
-vector_type = cbt.vector_type
-angle_unit_type = cbt.angle_unit_type
-number = cbt.number
-array = cbt.array
+
 
 class Structure():
     def __init__(
@@ -33,7 +32,7 @@ class Structure():
             
         self.name = kwargs.get("name", None)
         self.color = kwargs.get("color", None )
-        self.center = None
+        self.center: cbt.vector_type
 
 class SuperCell():
     """
@@ -96,12 +95,12 @@ class SuperCell():
             self._instructures = geometries
         self.point_style = point_format
         
-        self.input_center: Iterable|None = kwargs.get('center', None)
+        self.input_center: cbt.vector_type|None = kwargs.get('center', None)
         self.rotation: int|None = kwargs.get('rotation', None)
-        self.translation : vector_type|None = kwargs.get('translation', None)
-        self.unit:angle_unit_type = kwargs.get('unit', 'degrees')
+        self.translation : cbt.vector_type|None = kwargs.get('translation', None)
+        self.unit:cbt.angle_unit_type = kwargs.get('unit', 'degrees')
         self.shiftcell = shift_enabled
-        self.default_center: vector_type = kwargs.get('relative_center', [0,0,0])
+        self.default_center: cbt.vector_type = kwargs.get('relative_center', [0,0,0])
 
         if self.input_center == None:
             self.cellcenter = self.default_center
@@ -109,7 +108,7 @@ class SuperCell():
             self.cellcenter = self.input_center
 
         if self.rotation != None:
-            if debug == "on": print("geo: center is ", self.cellcenter)
+            logger.debug(f"geo: center is {self.cellcenter}")
             deg = np.degrees(vm.angle_check(self.rotation, self.unit))
             self.rotatecell(deg)
         else:
@@ -133,8 +132,8 @@ class SuperCell():
 
             """
             if copy == True:
-                print("Angle is " , deg, " degrees")
-                numrot = round(360/deg)
+                logger.debug(f"Angle is {deg} degrees")
+                numrot = round(360/deg) # integer number of copies from rotation. e.g. 60 degrees gives 6 copies
                 for m in self._instructures:
                     for n in range(0, numrot):
                         if self.point_style == 'center':
@@ -162,11 +161,11 @@ class SuperCell():
         None
 
         """
-        if debug == "on": print("geo: translating cell by ", shiftvec, "\n")
+        logger.debug(f"translating cell by {shiftvec} \n")
         for n in self.structures:
-            if debug == "on":print("geo: the structure's original center is ", n.ogcenter)
+            logger.debug(f"the structure's original center is {n.ogcenter}")
             newcenter = np.asarray(n.original_center) + shiftvec
-            if debug == "on":print("geo: the structure's new center is ", newcenter)
+            logger.debug(f"the structure's new center is {newcenter}")
             n.center = newcenter
 
     def _shift_center(self, oldcenter, newcenter):
@@ -232,7 +231,7 @@ class SuperCell():
     @center.setter
     def center(self, newcent):
         self.cellcenter = newcent
-        if debug=='on': print("geo: newcenter ", newcent)
+        logger.debug(f"geo: newcenter {newcent}")
         self._shift_center(self.default_center, newcent)
         
     @property
@@ -252,11 +251,11 @@ class CylinderVortexCell(SuperCell):
     def __init__(
                 self,
                 lattice: Lattice,
-                center: vector_type,
+                center: cbt.vector_type,
                 radius_1: number,
                 R_max: number,
                 height: number = 10,
-                vort_center: vector_type = [0,0,0],
+                vort_center: cbt.vector_type = [0,0,0],
                 vort_radius: number = 1,
                 winding_number: number = 1,
                 radius_2: number|None = None,
@@ -303,8 +302,8 @@ class CylinderVortexCell(SuperCell):
 
             #Building Geometries
 
-            cyl1_position = self.lattice.lat_to_cart((1-self.scaling)*[1/3, 1/3, 0])
-            cyl2_position = self.lattice.lat_to_cart((1+self.scaling)*[2/3, 2/3, 0])
+            cyl1_position = self.lattice.lat_to_cart((1-self.scaling)*[1/3, 1/3, 0]) #type: ignore
+            cyl2_position = self.lattice.lat_to_cart((1+self.scaling)*[2/3, 2/3, 0]) #type: ignore
 
             cyl1 = Cylinder(cyl1_position, radius=self.rad1, height = self.height)
             cyl2 = Cylinder(cyl2_position, radius=self.rad2, height = self.height)
@@ -316,8 +315,8 @@ class CylinderVortexCell(SuperCell):
     def calculate_modulation(self):
         self.rho, self.theta = self.calculate_radial_position()
         delR_term = self.rmax*np.tanh(self.rho/self.vortrad)
-        KPlus = np.array(4*np.pi/(3*self.latt_const), 0)
-        KMinus = np.array(-4*np.pi/(3*self.latt_const), 0)
+        KPlus = np.array([4*np.pi/(3*self.latt_const), 0])
+        KMinus = np.array([-4*np.pi/(3*self.latt_const), 0])
         Ktot = KPlus - KMinus
         costerm = np.cos(np.dot(Ktot, self.rho) + (self.winding*self.theta))
         RMod = delR_term * costerm
@@ -389,10 +388,10 @@ class HexagonalVortexCell(SuperCell):
 
         tri1new = vm.shift_angle(tri1, self.phi, self.m)
 
-        tri1 = eqTriangle(1,self._side_length, center=tri1new, theta=-30) #left
-        tri2 = eqTriangle(1,self._side_length, center=tri2, theta=30) #right
+        triangle1 = eqTriangle(1,self._side_length, center=tri1new, theta=-30) #left
+        triangle2 = eqTriangle(1,self._side_length, center=tri2, theta=30) #right
         #Build unit cell
-        unitcell = [tri1, tri2]
+        unitcell = [triangle1, triangle2]
         
         #initialize parent supercell, specifying the center of the supercell and creating the structures by rotating the unit cell 3 times about the center
         super().__init__(unitcell, center=self.diraccenter, rotation=120, unit='degrees', point='center' )
@@ -426,10 +425,10 @@ class Cylinder(Structure):
     
     def __init__(
             self,
-            center: Iterable,
+            center: cbt.vector_type,
             radius: number,
             height: number,
-            axis: int|Iterable = 2,
+            axis: cbt.axis_type = 2,
             **kwargs
     ) -> None:
         """
@@ -452,7 +451,7 @@ class Cylinder(Structure):
             elif self.axis==0:
                 self.axis=np.array([1, 0, 0])
             else:
-                pass
+                self.axis = self.axis[:2] # take the first three values as a three vector
         except ValueError:
             pass
 
@@ -481,7 +480,7 @@ class Cylinder(Structure):
 
         
         center = np.mean((vert1, vert2), axis=0)
-        axis = vert2 - vert1
+        axis:cbt.axis_type = vert2 - vert1
         return cls(center=center, radius=radius, height=height, axis=axis)
     
     @classmethod
@@ -503,22 +502,23 @@ class Cylinder(Structure):
         'radius' : float of new radius for copied object        
 
         """
-        cent = kwargs.get('center')
-        rad = kwargs.get('radius')
+        cent: cbt.vector_type|None = kwargs.get('center', None)
+        rad: cbt.number|None = kwargs.get('radius', None)
   
 
-        if 'radius' in kwargs: 
-            if debug==True:print("Making Structure with radius: ", rad)
+        if rad is not None: 
+            logger.debug(f"Making Structure with radius: {rad}")
             newrad = rad
         else:
             newrad = self.radius
 
 
-        if 'center' in kwargs:
-            if debug==True:print("Making Structure with Center: ", cent)
+        if cent is not None:
+            logger.debug(f"Making Structure with Center: {cent}")
             newcent = cent
         else:
             newcent = self.center
+            
         newcopy = Cylinder(newcent, newrad, self.height, self.inaxis, original_center=self.ogcenter)
         
         return newcopy
@@ -561,14 +561,14 @@ class Sphere(Structure):
 
 
         if 'radius' in kwargs: 
-            if debug==True:print("Making Structure with radius: ", rad)
+            logger.debug(f"Making Structure with radius: {rad}")
             newrad = rad
         else:
             newrad = self.radius
 
 
         if 'center' in kwargs:
-            if debug==True:print("Making Structure with Center: ", cent)
+            logger.debug(f"Making Structure with Center: {cent} ")
             newcent = cent
         else:
             newcent = self.center
@@ -617,7 +617,7 @@ class Triangle(Structure):
         elif axis==0:
             self.axis=np.array([1, 0, 0])
         else:
-            print("Error: Axis not Found")
+            raise ValueError("Axis not Found")
 
         self._centroid = np.asarray(np.sum(self.invertices, axis=(0))/np.size(self.invertices, 1))
 
@@ -673,8 +673,7 @@ class Triangle(Structure):
         elif self.inaxis==2:
             extent = [self.centroid[2]-self.height/2, self.centroid[2]+self.height/2]
         else:
-            print("Error defining axis")
-            return
+            raise ValueError("Error defining axis")
         return extent
     
     def calc_circumcenter(self):
@@ -693,27 +692,28 @@ class Triangle(Structure):
          
 
         """
-        cent = kwargs.get('center')
-        verts = kwargs.get('vertices')
+        cent = kwargs.get('center', None)
+        verts = kwargs.get('vertices', None)
   
-
-        if 'vertices' in kwargs: 
-            if debug==True: print("Making Structure with Vertices: ", verts)
+    
+        if ('vertices' in kwargs) and ('cent' not in kwargs): 
+            logger.debug(f"Making Structure with Vertices: {verts}")
             newverts = verts
             newcopy = Triangle(newverts, self.height, self.inaxis)
-        else:
-            newverts = self.vertices
 
-        if 'center' in kwargs:
-            if debug==True: print("Making Structure with Center: ", cent)
+        elif ('vertices' not in kwargs) and ('cent' in kwargs):
+            logger.debug(f"Making Structure with Center: {cent}")
             newcent = cent
             newcopy = Triangle(self.vertices, self.height, self.inaxis, newcent)
-        else:
-            newcent = self.center
         
-        if 'center' in kwargs and 'vertices' in kwargs:
-            print("Center and Vertices Both Defined. This may not shift like you expect. Please check results.")
+        elif ('center' in kwargs) and ('vertices' in kwargs):
+            newcent = cent
+            newverts = verts
+            warnings.warn("Center and Vertices both defined when copying triangle. This may not shift like you expect. Please check results.", )
             newcopy = Triangle(newverts, self.height, self.inaxis, newcent)
+        
+        else:
+            raise ValueError(" You must define the new center or vertices")
         
         return newcopy
 
@@ -764,7 +764,7 @@ class eqTriangle(Triangle):
             return newlist
 
 
-        Triangle.__init__(self, vertices=self.vertices, height=height, axis=axis, center=center, **kwargs)
+        super().__init__(vertices=self.vertices, height=height, axis=axis, center=center, **kwargs)
 
 class Block(Structure):
     """
@@ -797,7 +797,7 @@ class Block(Structure):
         Create a Block from a set of vectors, using their magnitudes to define the size by default. This is different than MEEP/MPB, which ignores the size. If `size` is not None, use the passed values to rescale like MEEP/MPB.
         """
         super().__init__(**kwargs)
-        self.invec_array = np.array([vectors[0], vectors[1], vectors[2]])
+        self.invec_array: cbt.vector_list = np.array([vectors[0], vectors[1], vectors[2]])
         
         self.input_magnitudes: list|cbt.Iterable|None = size
 
@@ -838,19 +838,19 @@ class Block(Structure):
         size = kwargs.get('size')
         
         if 'vectors' in kwargs: 
-            if debug==True:print("Making Structure with vectors: ", vectors)
+            logger.debug(f"Making Structure with vectors: {vectors}")
             newvec = vectors
         else:
             newvec = self.normalized_vecs
 
         if 'size' in kwargs: 
-            if debug==True:print("Making Structure with size: ", size)
+            logger.debug(f"Making Structure with size: {size}")
             newsize = size
         else:
             newsize = self.extents
         
         if 'center' in kwargs:
-            if debug==True:print("Making Structure with Center: ", cent)
+            logger.debug(f"Making Structure with Center: {cent} ")
             newcent = cent
         else:
             newcent = self.center
@@ -876,8 +876,8 @@ class Block(Structure):
     
     @transform_matrix.setter
     @homogeneous_transform_matrix.setter 
-    def _set_transform_matrix(self,*args, **kwargs):
-        print("You cannot change the transformation matrix after defining the input vectors")
+    def _set_transform_matrix(self, *args, **kwargs):
+        raise NotImplementedError("You cannot change the transformation matrix after defining the input vectors")
     
 
     def _calculate_verts(self):
@@ -921,7 +921,7 @@ class Block(Structure):
 
         self.edge_array = edge_array  
                 
-    def _normalize_vectors(self, vectors:array):
+    def _normalize_vectors(self, vectors:cbt.vector_list):
         """ Gets magnitudes of input vectors and creates an array of unit vectors from input"""
         for index, vect in enumerate(vectors):
             npvec = np.asarray(vect)

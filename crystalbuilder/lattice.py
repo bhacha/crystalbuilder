@@ -1,14 +1,17 @@
 from __future__ import annotations
 import numpy as np
-import numpy.typing as npt
-import ast
+import utilities.cb_types as cbt
 from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
-import copy
 
-from crystalbuilder import geometry as geometry
+from crystalbuilder import geometry as geo
+import logging
+logger = logging.getLogger(__name__)
 
-debug='off'
+
+# For Tidy3D methods, try/except statements are used to import tidy3d at runtime, so it's safe to ignore errors about missing imports. 
+# This allows the package to be used without having Tidy3D installed.
+
 scattersizes = 1/72
 
 def check_numbound(point:list, bound1:list, bound2:list, bound3:list):
@@ -33,7 +36,7 @@ def _plot_modulation(modulation_output, **kwargs):
     position = modulation_output[0]
     mod = modulation_output[1]
     maxmod = modulation_output[2][0]
-    if debug=='on': print("The inputs are position[0]: {}, position[1]: {} \n mod:{}, maxmod: {}".format(position[0], position[1], mod, maxmod))
+    logger.debug(f"The inputs are position[0]: {position[0]}, position[1]: {position[1]} \n mod:{mod}, maxmod: {maxmod}")
     if ax == None:
         plt.scatter(position[0], position[1], c=mod, vmin=-maxmod, vmax=maxmod, cmap='Spectral', s=scattersizes, linewidths=0)
     else:
@@ -48,10 +51,10 @@ class Lattice:
 
     def __init__(
             self,
-            a1: npt.ArrayLike = np.array([1,0,0]),
-            a2: npt.ArrayLike= np.array([0,1,0]),
-            a3: npt.ArrayLike= np.array([0,0,1]),
-            magnitude:npt.ArrayLike|list = np.array([1,1,1]),
+            a1: cbt.vector_type = np.array([1,0,0]),
+            a2: cbt.vector_type = np.array([0,1,0]),
+            a3: cbt.vector_type = np.array([0,0,1]),
+            magnitude: cbt.vector_type = np.array([1,1,1]),
             **kwargs):
         """
         The Lattice class can be initialized with specified a1, a2, a3 vectors and magnitude
@@ -87,7 +90,22 @@ class Lattice:
         self.basis = np.concatenate([[self.a1_scaled],[self.a2_scaled], [self.a3_scaled]], axis=0)
 
 ### Basis Manipulation ###
-    def rotate_basis(self, theta, axis = 2, unit='degrees'):
+    def rotate_basis(self, 
+                    theta: float, 
+                    axis: cbt.axis_number = 2, 
+                    unit: cbt.angle_unit_type ='degrees'):
+        """ Rotate the basis by a specified angle
+
+        Parameters
+        ----------
+        theta : float
+            rotation angle in degrees (default) or radians, as specified by `unit`
+        axis : Literal[0, 1, 2], optional
+            Axis to rotate about, x=0, y=1, z=2, by default 2
+        unit : Literal['radians', 'degrees'], optional
+            radians or degrees, by default 'degrees'
+        """
+
         origin = (0,0,0)
         self.basis[0] = vm.rotate([self.a1_scaled], theta, origin, axis=axis, unit=unit, toarray=True)
         self.basis[1] = vm.rotate([self.a2_scaled], theta, origin, axis=axis, unit=unit, toarray=True)
@@ -106,9 +124,13 @@ class Lattice:
         newpoint = vm.cart_to_pol(point)
         return newpoint
     
-
 ### Tiling Methods ###
-    def tile_mpgeometry(self, VerticesList:list, a1reps:int, a2reps:int, a3reps:int, style='centered'):
+    def tile_mpgeometry(self, 
+                        VerticesList: cbt.vector_list,
+                        a1reps:int,
+                        a2reps:int,
+                        a3reps:int, 
+                        style: cbt.Literal["centered", "positive"] ='centered'):
         """
         INCOMPLETE - RETURNS COORDINATES, NOT NEW OBJECTS;
         For MEEP/MPB
@@ -122,8 +144,8 @@ class Lattice:
                 vertices of geometry object(s)
             a1reps, a2reps, a3reps: int
                 number of repetitions along a1, a2, a3 lattice vectors respectively
-            style: str 
-                "centered" or "positive" to tile in all directions or in +x only. 
+            style: Literal["centered", "positive"] 
+                "centered" or "positive" to tile in all directions or in +x only. default 'centered' 
         Returns
         -------
             newpos: list
@@ -135,15 +157,13 @@ class Lattice:
         #All points are going to be 3-tuples or 3-lists. Varying number of vertices in each geometry. 
         geolist = []
         newpos = []
-        #print(type(VerticesList))
-        #print(isinstance(VerticesList, Triangle))
-        if isinstance(VerticesList, geometry.Triangle):
+
+        if isinstance(VerticesList, geo.Triangle):
             VerticesList = VerticesList.vertlist
 
         for geometry in VerticesList:
             #iterate through the list of geometry objects
             if isinstance(geometry, list):
-                #print(geometry)
                 xcen = geometry[0]
                 ycen = geometry[1]
                 zcen = geometry[2]
@@ -169,13 +189,15 @@ class Lattice:
                             
                 
             else:
-                print("This is a", type(geometry), '\n')
+                raise ValueError(f"This is a {type(geometry)}")
             
         return newpos
 
     def tile_tdgeometry(self, Geometry, a1reps:int, a2reps:int, a3reps: int, style='centered', **kwargs):
-        import tidy3d as td
-        
+        try:
+            import tidy3d as td 
+        except Exception as e:
+            print(e)        
         """
         Tiles Tidy3D Geometry
         Similar to tile_mpgeometry, but meant for tidy3d classes. Can accept either Geometry or GeometryGroup
@@ -212,30 +234,29 @@ class Lattice:
 
         """
         newgeom = []
-        if isinstance(Geometry, td.GeometryGroup):
-            print("It's a Geometry Group")
+        if isinstance(Geometry, td.GeometryGroup): # pyright: ignore[reportPossiblyUnboundVariable] 
             for n in Geometry.geometries:
-                if isinstance(n, td.PolySlab):
-                    print("Polyslab has no center attribute")
+                if isinstance(n, td.PolySlab): # pyright: ignore[reportPossiblyUnboundVariable] 
+                   raise ValueError("Polyslab has no center attribute")
 
                 else:
                     xcen = n.center[0]
                     ycen = n.center[1]
                     zcen = n.center[2]
                 
-                tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
+                tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style) # pyright: ignore[reportPossiblyUnboundVariable] 
                 
                 for m in range(0,len(tiledpoints)):
                     newgeom.append(n.updated_copy(center=tiledpoints[m]))
                     
                 
-        elif isinstance(Geometry, (td.components.geometry.Box, td.components.geometry.Sphere, td.components.geometry.Cylinder, td.components.geometry.PolySlab, td.components.geometry.TriangleMesh)):
-            print("It's a ", type(Geometry))
+        elif isinstance(Geometry, (td.components.geometry.Box, td.components.geometry.Sphere, td.components.geometry.Cylinder, td.components.geometry.PolySlab, td.components.geometry.TriangleMesh)): # pyright: ignore[reportPossiblyUnboundVariable] 
+            logging.debug(f"It's a {type(Geometry)}")
         
         else:
-            print("Geometry must be a td.Geometry object, not ", type(Geometry))
+            raise ValueError(f"Geometry must be a td.Geometry object, not {type(Geometry)}")
 
-        return td.GeometryGroup(geometries=newgeom)
+        return td.GeometryGroup(geometries=newgeom) # pyright: ignore[reportPossiblyUnboundVariable] 
 
     def tile_geogeometry(self, Geometry, a1reps:int, a2reps:int, a3reps: int, style='centered', **kwargs):
         """
@@ -276,65 +297,64 @@ class Lattice:
         """
    
         newgeom = []
-        if isinstance(Geometry, geometry.Triangle):
-            if vm.debug == 'on': print("Lat: Geometry is a Triangle")
+        if isinstance(Geometry, geo.Triangle):
+            logger.debug("Lat: Geometry is a Triangle")
             xcen = Geometry.center[0]
             ycen = Geometry.center[1]
             zcen = Geometry.center[2]
-            if vm.debug == 'on': print("Lat: ", [xcen, ycen, zcen])
+            logger.debug(f"Lat: {[xcen, ycen, zcen]}")
 
             tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            if vm.debug == 'on': print("Lat: ", tiledpoints)
+            logger.debug(f"Lat: {tiledpoints}")
 
             for m in range(0,len(tiledpoints)):
-                if vm.debug == 'on': print("Lat: the center is: \n", tiledpoints[m], "\n")
+                logger.debug(f"Lat: the center is: {tiledpoints[m]} ")
                 newstruct = Geometry.copy(center=tiledpoints[m])
                 newgeom.append(newstruct)
             
-            if vm.debug == 'on':
-                print("Lat: ", "newgeom = ", newgeom[0].center, "   ", newgeom[1].center)
+            logger.debug(f"Lat: newgeom = {newgeom[0].center}, {newgeom[1].center}")
     
-        elif isinstance(Geometry, geometry.Sphere):
-            if vm.debug == 'on': print("Lat: Geometry is a Sphere")
+        elif isinstance(Geometry, geo.Sphere):
+            logger.debug("Lat: Geometry is a Sphere")
             xcen = Geometry.center[0]
             ycen = Geometry.center[1]
             zcen = Geometry.center[2]
-            if vm.debug == 'on': print("Lat: ", [xcen, ycen, zcen])
+            logger.debug(f"Lat: {[xcen, ycen, zcen]}")
 
             tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            if vm.debug == 'on': print("Lat: ", tiledpoints)
+            logger.debug(f"Lat: {tiledpoints}")
 
             for m in range(0,len(tiledpoints)):
-                if vm.debug == 'on': print("Lat: the center is: \n", tiledpoints[m], "\n")
+                logger.debug(f"Lat: the center is: {tiledpoints[m]} ")
                 newstruct = Geometry.copy(center=tiledpoints[m])
                 newgeom.append(newstruct)
             
-            if vm.debug == 'on':
-                print("Lat: ", "newgeom = ", newgeom[0].center, "   ", newgeom[1].center)
+            logger.debug(f"Lat: newgeom = {newgeom[0].center}, {newgeom[1].center}")
                 
-        elif isinstance(Geometry, geometry.Block):
-            if vm.debug == 'on': print("Lat: Geometry is a Block")
+        elif isinstance(Geometry, geo.Block):
+            logger.debug("Lat: Geometry is a Block")
             xcen = Geometry.center[0]
             ycen = Geometry.center[1]
             zcen = Geometry.center[2]
             
             
             tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            if vm.debug == 'on': print("Lat: ", tiledpoints)
+            logger.debug(f"Lat: {tiledpoints}")
+            
 
             for m in range(0,len(tiledpoints)):
-                if vm.debug == 'on': print("Lat: the center is: \n", tiledpoints[m], "\n")
+                logger.debug(f"Lat: the center is: {tiledpoints[m]} ")
                 newstruct = Geometry.copy(center=tiledpoints[m])
                 newgeom.append(newstruct)
             
-            if vm.debug == 'on':
-                print("Lat: ", "newgeom = ", newgeom[0].center, "   ", newgeom[1].center)
+            logger.debug(f"Lat: newgeom = {newgeom[0].center}, {newgeom[1].center}")
             
 
         elif isinstance(Geometry, list):
-            if vm.debug == 'on': print("Lat: Geometry is a list")
+            logger.debug("Lat: Geometry is a list")
             for n in Geometry:
-                if isinstance(n, geometry.Structure):
+                if isinstance(n, geo.Structure):
+                    print(type(n))
                     xcen = n.center[0]
                     ycen = n.center[1]
                     zcen = n.center[2]
@@ -348,26 +368,26 @@ class Lattice:
                     sublist = self.tile_geogeometry(n, a1reps, a2reps, a3reps)
                     newgeom.append(sublist)
 
-        elif isinstance(Geometry, geometry.SuperCell):
-            if debug == 'on': print("Lat: Geometry is a SuperCell")
+        elif isinstance(Geometry, geo.SuperCell):
+            logger.debug("Lat: Geometry is a SuperCell")
             xcen = Geometry.center[0]
             ycen = Geometry.center[1]
             zcen = Geometry.center[2]
-            if debug == 'on': print("Lat: Cell Center is ", str([xcen, ycen, zcen]))
+            logger.debug(f"Lat: Cell Center is {[xcen, ycen, zcen]}")
 
             tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            if debug == 'on': print("Lat: The Tiled Points are at ", tiledpoints)
+            logger.debug(f"Lat: The Tiled Points are at {tiledpoints}")
 
             for m in range(0,len(tiledpoints)):
-                if debug == 'on': print("Lat: the center is: \n", tiledpoints[m], "\n")
+                logger.debug(f"Lat: the center is: {tiledpoints[m]}")
                 newstruct = Geometry.copy(center=tiledpoints[m], relative_center=[xcen, ycen, zcen])
                 newgeom.append(newstruct)
             
-            if debug == 'on':
-                print("Lat: newgeom = ", newgeom[0].center, "   ", newgeom[1].center)
+            
+                logger.debug(f"Lat: newgeom = {newgeom[0].center} {newgeom[1].center}")
 
         else:
-            print("Geometry must be a CrystalBuilder.geometry object, not ", type(Geometry))
+            raise ValueError(f"Geometry must be a CrystalBuilder.geometry object, not {type(Geometry)}")
         
         return newgeom
 
@@ -480,7 +500,7 @@ class Lattice:
             startrad = kwargs.get("start_radius", 0)
             radius = kwargs.get("radius", max(a1reps, a2reps))
         else:
-            pass
+            raise ValueError("You must define a tiling style")
 
 
         xcen = centers[0]
@@ -526,7 +546,7 @@ class Lattice:
     """ These are functions that apply the below modulations to the tiled lattice"""
 
     def modulate_cells(self, structure, vortex_radius, winding_number, max_modulation, modulation_type='radius', whole_cell=True, plot_modulation = False, **kwargs ):
-        if debug == "on": print("Modulating Cells for %s" %(structure))
+        logger.debug(f"Modulating Cells for {structure}")
         poslist = []
         modlist = []
         ax = kwargs.get("ax")
@@ -603,12 +623,12 @@ class Lattice:
             elif newrad <= 0: 
                 geo_object.radius = 0
                 print("negative radius calculated. Check Units!")
-            if debug == "on": print(geo_object, " is now radius ", newrad)
+            logger.debug(f"{geo_object} is now radius {newrad}")
 
         if modulation_type == 'balanced':
             absolute_position = geo_object.center.tolist()
             in_cell_position = np.asarray(geo_object.center) - np.asarray(cellcenter)
-            if debug == 'on': print("The relative position of the structure is", position)
+            logger.debug(f"The relative position of the structure is {position}")
 
             rmod = self._kekule_radius_mod(position, vortrad, winding, maxmod, in_cell_pos = in_cell_position)
             oldrad = geo_object.radius
@@ -618,11 +638,11 @@ class Lattice:
             elif newrad <= 0: 
                 geo_object.radius = 0
                 print("negative radius calculated. Check Units!")
-            if debug == "on": print(geo_object, " is now radius ", newrad)
+            logger.debug(f"{geo_object} is now radius {newrad}")
 
 
         elif modulation_type == 'position':
-            print("Error: position modulation is not implemented yet.")
+            raise NotImplementedError(f"Position modulation is not implemented yet.")
 
         if output_rmod == True:
             return (absolute_position, rmod, maxmod)
@@ -648,7 +668,7 @@ class Lattice:
         center_distance = np.linalg.norm(in_cell_position)
 
 
-        if debug == 'on': print("The relative position of the structure is", position)
+        logger.debug(f"The relative position of the structure is {position}")
 
         posmod, rmod = self._dual_symmetry_mod(position, vortrad, winding, maxmod, in_cell_pos = in_cell_position)
 
@@ -659,10 +679,8 @@ class Lattice:
         newrad = oldrad + rmod
         oldpos = np.asarray(geo_object.center)
         newpos = in_cell_position + (posmod/center_distance)*in_cell_position + np.asarray(cellcenter)
-        if debug == 'on':
-            print("The new position would be: ", newpos)
-            print("The old position was: ", oldpos)
-            print("\n")
+        logger.debug(f"The new position would be: {newpos} \n  The old position was: {oldpos} \n")
+
             
         if newrad > 0:
             geo_object.radius = newrad
@@ -673,7 +691,7 @@ class Lattice:
             geo_object.center = newpos
             print("negative radius calculated. Check Units!")
 
-        if debug == "on": print(geo_object, " is now radius ", newrad)
+        logger.debug(f"{geo_object} is now radius {newrad}")
 
         if output_rmod == True:
             return (absolute_position, rmod, maxmod)
@@ -702,24 +720,24 @@ class Lattice:
             else:
                 cartpos = position[:2]
 
-        if debug == "on": print("cartpos = ", cartpos)
+        logger.debug(f"cartpos = {cartpos}")
         #Generate the polar coordinates of the absolute position
         polpos = vm.cart_to_pol(position)
         rho, theta = polpos[0], polpos[1]
 
         #Create delta R modulation term from rho (polar distance)
         delR_term = maxmod*np.tanh(rho/vortrad)
-        if debug == "on": print("delR_term = ", delR_term)
+        logger.debug(f"delR_term = {delR_term}")
         #The K+ and K - points get summed to Ktot, whose dot product with the cartesian coordinate (relative or absolute) selects for the two sublattices or the center pillar (+, -, 0). 
         KPlus = np.array([4*np.pi/(3*self.latt_const), 0])
         KMinus = np.array([-4*np.pi/(3*self.latt_const), 0])
         Ktot = KPlus - KMinus
-        if debug == "on": print("lat: Ktot = ", Ktot)
+        logger.debug(f"lat: Ktot = {Ktot}")
         costerm = np.cos(np.dot(Ktot, cartpos) + (winding*theta))
-        if debug == "only_dot": print(f"lat: dot product = {np.dot(Ktot, cartpos)}" )
-        if debug == "on": print("costerm = ", costerm)
+        logger.debug(f"lat: dot product = {np.dot(Ktot, cartpos)}" )
+        logger.debug(f"costerm = {costerm}")
         RMod = delR_term[0] * costerm
-        if debug == "on": print("RMod = ", RMod)
+        logger.debug(f"RMod = {RMod}")
         return RMod
     
     def _dual_symmetry_mod(self, position, vortrad, winding, maxmod, alpha=4, **kwargs):
@@ -808,7 +826,10 @@ class Lattice:
 
             
 
-
+if __name__ == "__main__":
+    geometry = geo.Sphere(center=[0,0,0], radius=1)
+    lat = Lattice()
+    lat.tile_geogeometry([geometry], 2, 2, 2,)
 
 
 
