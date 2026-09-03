@@ -330,7 +330,9 @@ class SpaceGroup():
                     generated_points = np.unique(generated_points, axis=0)
                 
             else:
-                generated_points:array = get_coordinates(self.group_num, origin=point_list)
+                scaled_point = point_list * np.asarray(a_mag)
+                print(scaled_point)
+                generated_points:array = get_coordinates(self.group_num, origin=scaled_point, a_mag=a_mag)
                 generated_points.reshape(-1,3)
                 listlen=len(generated_points)
                 if ignore_repeats == True:

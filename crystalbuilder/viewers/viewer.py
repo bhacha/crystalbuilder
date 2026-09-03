@@ -1,4 +1,3 @@
-from crystalbuilder.configuration import viewer_mode as config_viewer_mode
 from typing import Literal
 from typing import TYPE_CHECKING
 from crystalbuilder.utilities.utils import TransformationMatrix
@@ -8,7 +7,7 @@ from importlib import import_module
 import crystalbuilder.viewers.vedo_viewer as vv
 import crystalbuilder.viewers.trimesh_viewer as tv
 
-config_view_mode = config_viewer_mode
+viewer_mode = 'vedo'
 
 
 class WrapScene:

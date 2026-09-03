@@ -990,11 +990,11 @@ def NearestNeighbors(points, radius, neighborhood_range, a_mag=1.0):
     """
     pointarr = np.asarray(points)
     kdtree = scs.KDTree(pointarr, leafsize=15, compact_nodes=True)
-    neighbors = kdtree.query_pairs(r=neighborhood_range, p=2)
+    neighbors = kdtree.query_pairs(r=neighborhood_range*a_mag, p=2)
     structure_list = []
     for pair in neighbors:
-        point = pointarr[pair[0]] * a_mag
-        neighbor = pointarr[pair[1]] *a_mag
+        point = pointarr[pair[0]]
+        neighbor = pointarr[pair[1]]
         structure_list.append(Cylinder.from_vertices([point, neighbor], radius=radius))
     return structure_list
 

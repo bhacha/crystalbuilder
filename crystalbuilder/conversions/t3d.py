@@ -51,7 +51,7 @@ def rotate_to(orientation, v1 = [0,0,1]):
     
     rot_axis_unnorm = np.cross(v1, orientation)
     s_angle = np.linalg.norm(rot_axis_unnorm)
-    rot_axis = rot_axis_unnorm/s_angle
+    rot_axis = rot_axis_unnorm/s_angle 
     c_angle = np.dot(v1, orientation)
     rotmat2 = Transformed.rotation(s_angle, (rot_axis[0], rot_axis[1], rot_axis[2]))
 

@@ -353,7 +353,6 @@ class Lattice:
             logger.debug("Lat: Geometry is a list")
             for n in Geometry:
                 if isinstance(n, geo.Structure):
-                    print(type(n))
                     xcen = n.center[0]
                     ycen = n.center[1]
                     zcen = n.center[2]
