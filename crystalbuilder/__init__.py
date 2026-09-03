@@ -5,7 +5,6 @@ try:
 except PackageNotFoundError:
     __version__ = "unknown"
 
-
 import crystalbuilder.geometry as geometry
 import crystalbuilder.lattice as lattice
 import crystalbuilder.vectors as vectors

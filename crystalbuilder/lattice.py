@@ -1,9 +1,8 @@
 from __future__ import annotations
 import numpy as np
-import utilities.cb_types as cbt
+import crystalbuilder.utilities.cb_types as cbt
 from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
-
 from crystalbuilder import geometry as geo
 import logging
 logger = logging.getLogger(__name__)
