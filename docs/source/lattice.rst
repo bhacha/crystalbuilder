@@ -1,8 +1,6 @@
+.. _lattice_docs:
 Lattice
-===
-
-Lattice
------------------------------
+========
 
 Tiling functions for generating the periodic crystal
 

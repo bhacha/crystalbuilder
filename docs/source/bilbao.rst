@@ -1,8 +1,7 @@
-Bilbao Interface
-============
+.. _bilbao_docs:
 
 Bilbao Interface
-----------------------------
+=================
 
 .. automodule:: crystalbuilder.bilbao
    :members:

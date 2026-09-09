@@ -1,7 +1,6 @@
 from __future__ import annotations
 import numpy as np
 import crystalbuilder.utilities.cb_types as cbt
-from matplotlib import pyplot as plt
 from crystalbuilder import vectors as vm
 from crystalbuilder import geometry as geo
 import logging
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 # For Tidy3D methods, try/except statements are used to import tidy3d at runtime, so it's safe to ignore errors about missing imports. 
 # This allows the package to be used without having Tidy3D installed.
 
-scattersizes = 1/72
+scattersizes = 1/72 #Global size for plotting scatterplot data using matplotlib.
 
 def check_numbound(point:list, bound1:list, bound2:list, bound3:list):
     if  (bound1[0] <= point[0] <= bound1[1]) == False:

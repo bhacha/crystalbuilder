@@ -1,8 +1,6 @@
+.. _geometry_docs:
 Geometry
-===
-
-Geometry
-------------------------------
+=========
 
  Geometry objects supported by crystalbuilder
 

@@ -3,9 +3,6 @@ from crystalbuilder.conversions.t3d import geo_to_tidy3d
 from crystalbuilder import lattice as lat
 from crystalbuilder import geometry as geo
 from crystalbuilder.conversions import lumc as lc
-
-# pyright: ignore[reportMissingImports]
-
 """
 The real conversion methods are found in crystalbuilder/conversions/
 

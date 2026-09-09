@@ -1,10 +1,8 @@
 
 import re
 import os
-
 location = os.path.dirname(os.path.realpath(__file__))
 resources = os.path.join(location, 'resources')
-
 import requests
 import numpy as np
 from bs4 import BeautifulSoup
@@ -12,25 +10,36 @@ import math
 import json
 import crystalbuilder.utilities.cb_types as cbt    
 
-Literal = cbt.Literal
-Iterable = cbt.Iterable
-vector_type = cbt.vector_type
-angle_unit_type = cbt.angle_unit_type
-scalar = cbt.number
-array = cbt.array
-matrix_like = cbt.matrix_like
-
 bilbao_url = "https://cryst.ehu.es/"
 
 cookie_dict = {"turnstile_passed": '1767991980'} #filler cookie. Should be set with _get_spacegroups()
 
-def _get_spacegroups(cookie, spacegroup):
-    """
-    This should not be used in a regular import scenario. This scrapes data from the Bilbao server to create offline resource files, but only works with a cookie obtained after passing a Cloudflare DDOS protection. It will fail if run without configuring that.
-    """
+def _set_turnstile_cookie(cookie):
     formatted_cookie = str(cookie)
     global cookie_dict
     cookie_dict = {"turnstile_passed": formatted_cookie}
+    
+def _check_turnstile_cookie():
+    URL = bilbao_url+"cgi-bin/cryst/programs/nph-kv-list"
+    page = requests.post(URL, data={'gnum': str(1),'standard':'Optimized listing of k-vector types using ITA description'}, cookies=cookie_dict)
+    soup = BeautifulSoup(page.content, "html.parser") # type: ignore
+    kvec_table = soup.find_all('table')[1]
+    rows = kvec_table('tr')[2:]
+    raw_kvec_dict = {}
+
+def download_all_spacegroup_data(cookie=None, force_redownload=False):
+    _get_spacegroups(cookie, 'all', force_redownload=force_redownload)
+    
+
+def _get_spacegroups(cookie, spacegroup, **kwargs):
+    """
+    This should not be used in a regular import scenario. This scrapes data from the Bilbao server to create offline resource files, but only works with a cookie obtained after passing a Cloudflare DDOS protection. It will fail if run without configuring that.
+    """
+    
+    force_redownload = kwargs.get("force_redownload", False)
+    
+    if cookie is not None:
+        _set_turnstile_cookie(cookie)
     
     if spacegroup == 'all':
         spacegroup = list(range(1, 231))
@@ -40,41 +49,55 @@ def _get_spacegroups(cookie, spacegroup):
     if isinstance(spacegroup, list):
         for n in spacegroup:
             groupnum = int(n)
-            get_kvectors(groupnum)
-            get_genmat(groupnum)
+            # get_kvectors(groupnum, force_redownload=force_redownload)
+            get_genmat(groupnum, force_redownload=force_redownload)
     else:
-        get_kvectors(int(spacegroup))
-        get_genmat(int(spacegroup))
+        # get_kvectors(int(spacegroup), force_redownload=force_redownload)
+        get_genmat(int(spacegroup), force_redownload=force_redownload)
 
-
-def check_resource(filename:str) -> dict | Literal[False]:
+def _check_resource(filename:str):
     if os.path.exists(filename):
-        with open(filename) as f:
-            kvec_dict = json.load(f)
-        return kvec_dict
+            with open(filename) as f:
+                data_dict = json.load(f)
+            return data_dict
+    else:
+        return False
+
+def _get_resource(filename:str) -> dict | cbt.Literal[False]:
+    if os.path.exists(filename):
+            with open(filename) as f:
+                data_dict = json.load(f)
+            return data_dict
     else:
         return False
     
-def create_resource(filename:str, dictionary:dict) -> None:
-    try:
-        os.mkdir(resources)
-    except FileExistsError:
-        print(f"Saving to Resources file at {resources}")
+def _create_resource(filename:str, dictionary:dict) -> None:
+    if len(dictionary) != 0:
+        try:
+            os.mkdir(resources)
+        except FileExistsError:
+            print(f"Saving {filename} to Resources file at {resources}")
 
-    for key, value in dictionary.items():
-        if isinstance(value, np.ndarray):
-            dictionary[key] = value.tolist()
-    with open(filename, 'w') as f:
-        json.dump(dictionary, f, indent=3)
+        for key, value in dictionary.items():
+            if isinstance(value, np.ndarray):
+                dictionary[key] = value.tolist()
+        with open(filename, 'w') as f:
+            json.dump(dictionary, f, indent=3)
+    else:
+        raise Exception("Error: No Data Found. Check group number or run _set_turnstile_cookie() to bypass the Bilbao Crystallographic Server's Cloudflare Protection")
         
-def get_kvectors(groupnum:int, dict_out: bool=False) -> dict|array:
+        
+def get_kvectors(groupnum:int, output:cbt.Literal['dictionary', 'list', 'array', None]='dictionary', **kwargs) -> dict|cbt.array|list|None:
+    
+    
+    force_redownload = kwargs.get("force_redownload", False)
     
     kvec_array = [] #will convert coordinates to array
     kvec_dictionary = {} ## for converting both symbols and coordinates to formatted dictionary
     
     file = os.path.join(resources, f'{groupnum}-kvec.json')
-    localkdict = check_resource(file)
-    if localkdict:
+    localkdict = _get_resource(file)
+    if (localkdict) and not (force_redownload):
         for key, k in localkdict.items():
             kvec_array.append(k)
         save_file = False
@@ -86,6 +109,9 @@ def get_kvectors(groupnum:int, dict_out: bool=False) -> dict|array:
         soup = BeautifulSoup(page.content, "html.parser") # type: ignore
         kvec_table = soup.find_all('table')[1]
         rows = kvec_table('tr')[2:]
+        if len(rows) == 0:
+            raise Exception("Error: No data found. Invalid group number, the Turnstile Cookie is not set up correctly or the Bilbao Server is unreachable.")
+            
         raw_kvec_dict = {}
         for row in rows:
             sympoint = row.find_all('td')[0].get_text() #first cell has symbol/letter
@@ -119,14 +145,18 @@ def get_kvectors(groupnum:int, dict_out: bool=False) -> dict|array:
     kvec_array = np.reshape(np.asarray(kvec_array), (-1,3))
 
     if save_file == True:
-        create_resource(file, kvec_dictionary)
+        _create_resource(file, kvec_dictionary)
         
-    if dict_out == True:
+    if output == 'dictionary':
         return kvec_dictionary
-    else:
+    elif output == 'array':
         return kvec_array
+    elif output == 'list':
+        return list(kvec_array)
+    else:
+        return 
 
-def get_genmat(groupnum:int) -> list[array]:
+def get_genmat(groupnum:int, output:cbt.Literal['array', 'list', None]=None, **kwargs) -> list[cbt.array]|cbt.array|None:
     """ Retrieve generator matrices 
     
     Parameters
@@ -141,12 +171,13 @@ def get_genmat(groupnum:int) -> list[array]:
     
     """
 
+    force_redownload = kwargs.get("force_redownload", False)
     matrix_list = [] #will convert coordinates to array
     gen_dictionary = {} ## for converting both symbols and coordinates to formatted dictionary
     
     file = os.path.join(resources, f'{groupnum}-generators.json')
-    localgendict = check_resource(file)
-    if localgendict:
+    localgendict = _get_resource(file)
+    if localgendict and not force_redownload:
         for key, k in localgendict.items():
             matrix = k
             matrix_list.append(k)
@@ -160,6 +191,9 @@ def get_genmat(groupnum:int) -> list[array]:
         holder = gen_pos.find_all("pre")
 
         matrix_text = []
+        if len(holder) == 0:
+            raise Exception("Error: No data found. Invalid group number, the Turnstile Cookie is not set up correctly or the Bilbao Server is unreachable.")
+                    
         for k in holder:
             matrix_text.append(k.get_text()) #get text from table
 
@@ -192,40 +226,53 @@ def get_genmat(groupnum:int) -> list[array]:
         for key, value in enumerate(matrix_list):
             matdict[key] = value
         
-        create_resource(file, matdict) 
+        _create_resource(file, matdict) 
 
-    return matrix_list
-
-def get_coordinates(groupnum:int, origin:vector_type, output_array:bool=True, a_mag:vector_type = np.array([1,1,1])) -> list|array:
-    """ Generates positions from specified origin and generator matrices
+    if output == 'list':
+        return matrix_list
+    elif output == 'array':
+        return np.asanyarray(matrix_list)
+    else:
+        return
     
+
+def get_coordinates(groupnum:int, origin:cbt.vector_type, output:cbt.Literal['array', 'list']='array', a_mag:cbt.vector_type = np.array([1,1,1]), include_out_of_bounds=False) -> list|cbt.array|None:
+    """Generates positions from specified origin and generator matrices
+
     Parameters
-    -----------
+    ----------
     groupnum : int
         One of 230 numbered space groups in the IUCr
+        
+    origin : vector_type
+        Any point that should be used as (x,y,z) for symmetry operations from the generator matrices. 
+        
+    output_array : Literal['array', 'list'], optional, default 'array'
+            'array' outputs m x 3 numpy array with m being the number of generator matrices. If 'list', outputs a list of lists
+            
+    a_mag : vector_type, optional, default array[1,1,1]
+        Magnitude of lattice vector. All coordinates are multiplied by the components of this vector.
+        
+    include_out_of_bounds : bool, optional, default True
+        Include (True, default) points that are outside of the range 0 to a_mag. This feature is a WIP.
+        
 
-    origin : list
-        Any point that should be used as (x,y,z) for symmetry operations from the generator matrices
-    
-    output_array : bool
-        Oututs numpy array by default (True), since the result should be an m x 3 matrix with m being the number of generator matrices. If False, the output is a list of lists.
-    
     Returns
-    --------
-    coordinates : list, array
+    -------
+    coordinates : array, list, default array
         Returns an array if output_array is True (default), returns a list object otherwise.
 
 
-    
     """
-    ### We exclude transforms that return points outside of the unit cell. This can be overriden by setting bound_override to True
-    bound_override = True
+
+    bound_override = include_out_of_bounds
     lattice_scaling = np.asarray(a_mag)
-    position_vector = np.array([origin[0], origin[1], origin[2]]).reshape(3,1)
-    matrix_list = get_genmat(groupnum)
+    position_vector = np.array([origin[0], origin[1], origin[2]]).reshape(3,1) #type:ignore
+    matrix_list = get_genmat(groupnum, output='list')
+    assert matrix_list is not None
     coordinate_list = []
     coordinate_array = np.array([]).reshape(0,3)
-    for n in matrix_list:
+    for n in matrix_list: #type:ignore
         n = np.asarray(n)
         # scaled_n = (n.T*lattice_scaling).T
         linear_part, translation_part = np.split(n, [3,], axis=1) #Split matrix into linear part and translation part, *after* third element in row
@@ -240,18 +287,22 @@ def get_coordinates(groupnum:int, origin:vector_type, output_array:bool=True, a_
         # print(transformation)
         new_point = transformation.reshape(1,3) #make row matrix
         if ((((new_point<=lattice_scaling).all()) and ((new_point>= 0).all())) or (bound_override == True)):
-            if output_array==True:
+            if output=='array':
                 coordinate_array = np.concatenate([coordinate_array, new_point], axis=0)
-            else:
+            elif output == 'list':
                 coordinate_list.append(new_point.tolist()) #add point to list
+            else:
+                pass
         else:
             continue
         
 
-    if output_array == True:
+    if output == 'array':
         return coordinate_array
-    else:
+    elif output == 'list':
         return coordinate_list
+    else:
+        return
 
 class SpaceGroup():
     """ 
@@ -286,17 +337,17 @@ class SpaceGroup():
         
         """
         
-        self.point_list: array|None = kwargs.get("points", None)
+        self.point_list: cbt.array|None = kwargs.get("points", None)
         self.group_num = group_number
         
-        self.kvec_dict = get_kvectors(self.group_num, dict_out=True)
-        self.kvec_arr = get_kvectors(self.group_num, dict_out=False)
+        self.kvec_dict = get_kvectors(self.group_num, output='dictionary')
+        self.kvec_arr = get_kvectors(self.group_num, output='array')
 
         self.generator_matrices = get_genmat(self.group_num)
 
         self.generated_points = self.calculate_points(self.point_list)
 
-    def calculate_points(self, point_list: list|array|None, a_mag: vector_type = [1,1,1], ignore_repeats:bool = True) -> array:
+    def calculate_points(self, point_list: list|cbt.array|None, a_mag: cbt.vector_type = [1,1,1], ignore_repeats:bool = True) -> cbt.array:
         """
         Return a list of coordinates resulting from symmetry operations to each point in `point_list`. This is called once if the `SpaceGroup` is initialized with the `points` kwarg.
         It can be called any number of times to directly return points from new `point_list` inputs.
@@ -317,12 +368,12 @@ class SpaceGroup():
         generated_points : ndarray
             Unique points resulting from the symmetry operations on points in point_list. This includes negative values and values greater than 1 (outside the primitive cell).
         """
-        generated_points = np.array([]).reshape(-1,3)
+        generated_points:cbt.array = np.array([]).reshape(-1,3)
         if point_list is not None:
-            if isinstance(point_list, (list, np.ndarray)):
+            if any(isinstance(point, (list, np.ndarray)) for point in point_list):
                 for n in point_list:
                     scaled_point = n * np.asarray(a_mag)
-                    newpoint = get_coordinates(self.group_num, origin=scaled_point, a_mag=a_mag)
+                    newpoint = get_coordinates(self.group_num, origin=scaled_point, a_mag=a_mag, output='array')
                     generated_points = np.vstack((generated_points, newpoint))
                 generated_points.reshape(-1,3)
                 listlen=len(generated_points)
@@ -332,7 +383,7 @@ class SpaceGroup():
             else:
                 scaled_point = point_list * np.asarray(a_mag)
                 print(scaled_point)
-                generated_points:array = get_coordinates(self.group_num, origin=scaled_point, a_mag=a_mag)
+                generated_points:cbt.array = get_coordinates(self.group_num, origin=scaled_point, a_mag=a_mag)
                 generated_points.reshape(-1,3)
                 listlen=len(generated_points)
                 if ignore_repeats == True:

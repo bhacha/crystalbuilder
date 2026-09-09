@@ -29,3 +29,6 @@ dependencies = [
 
 [project.optional-dependencies]
 full = ['tidy3d']
+
+[project.scripts]
+bilbao-cli = "crystalbuilder.utilities.bilbao_resource_fetcher:download_bilbao_data"

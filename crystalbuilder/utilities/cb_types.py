@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 import typing as tp
@@ -9,11 +10,11 @@ Literal = tp.Literal
 Iterable = coll.Iterable
 
 angle_unit_type = tp.Literal['deg', 'degrees', 'd', 'degree', 'radians', 'rad', 'r', 'radian']
-number = np.number | float 
+number = float 
 
 
 
-array = np.ndarray
+array = npt.ArrayLike
 
 vector_type = coll.Sequence | array
 axis_number = tp.Literal[0,1,2]
