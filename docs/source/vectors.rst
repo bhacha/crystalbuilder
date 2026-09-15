@@ -1,4 +1,5 @@
 .. _vectors_docs:
+
 Vectors
 ========
 

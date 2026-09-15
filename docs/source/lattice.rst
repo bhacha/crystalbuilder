@@ -1,4 +1,5 @@
 .. _lattice_docs:
+
 Lattice
 ========
 

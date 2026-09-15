@@ -11,7 +11,7 @@ viewer_mode = 'vedo'
 
 
 class WrapScene:
-    def __init__(self, plot_object):
+    def __init__(self, plot_object, mode='vedo'):
         self.plot = plot_object
 
     def show(self):
@@ -25,7 +25,14 @@ class WrapScene:
             # print(type(self.plot).__name__)
             pass
         
-
+    def get_meshes(self):
+        """
+        In Vedo, this function grabs the mesh objects from the active viewer. This requires the viewer to be shown, so it will call the plot function first.
+        """
+        self.plot.show()
+        self.plot.get_meshes()
+        self.plot.close()
+        
 def visualize(structures, mode='vedo', **kwargs):
     """
     
@@ -55,7 +62,7 @@ def visualize(structures, mode='vedo', **kwargs):
     #     elif isinstance(object, list):
     #         for n in object:
     
-    plot_object = WrapScene(plot)            
+    plot_object = WrapScene(plot, mode=mode)            
             
     return plot_object
 
@@ -124,10 +131,10 @@ class Scene:
 
     
 
-# if __name__ == "__main__":
-#     import crystalbuilder.geometry as geo 
-#     tmshape = geo.Sphere(radius=1, center=[1,0,0])
-    
-#     test = Scene(backend='trimesh')
-#     view = test.visualize([tmshape])
-#     view.show()
+if __name__ == "__main__":
+    import crystalbuilder.geometry as geo 
+    tmshape = geo.Sphere(radius=1, center=[1,0,0])
+    scene = vv.visualize([tmshape])
+    scene.show()
+    objects = scene.get_meshes()
+    scene.close()

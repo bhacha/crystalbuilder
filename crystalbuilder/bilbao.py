@@ -6,9 +6,12 @@ resources = os.path.join(location, 'resources')
 import requests
 import numpy as np
 from bs4 import BeautifulSoup
-import math
 import json
 import crystalbuilder.utilities.cb_types as cbt    
+import logging
+
+logger = logging.getLogger(__name__)
+logger.debug("Bilbao is logging.")
 
 bilbao_url = "https://cryst.ehu.es/"
 
@@ -87,7 +90,7 @@ def _create_resource(filename:str, dictionary:dict) -> None:
         raise Exception("Error: No Data Found. Check group number or run _set_turnstile_cookie() to bypass the Bilbao Crystallographic Server's Cloudflare Protection")
         
         
-def get_kvectors(groupnum:int, output:cbt.Literal['dictionary', 'list', 'array', None]='dictionary', **kwargs) -> dict|cbt.array|list|None:
+def get_kvectors(groupnum:int, output:cbt.Literal['dictionary', 'list', 'array', None]='dictionary', **kwargs) -> dict|cbt.Array|list|None:
     
     
     force_redownload = kwargs.get("force_redownload", False)
@@ -156,7 +159,7 @@ def get_kvectors(groupnum:int, output:cbt.Literal['dictionary', 'list', 'array',
     else:
         return 
 
-def get_genmat(groupnum:int, output:cbt.Literal['array', 'list', None]=None, **kwargs) -> list[cbt.array]|cbt.array|None:
+def get_genmat(groupnum:int, output:cbt.Literal['array', 'list', None]=None, **kwargs) -> list[cbt.Array]|cbt.Array|None:
     """ Retrieve generator matrices 
     
     Parameters
@@ -236,7 +239,7 @@ def get_genmat(groupnum:int, output:cbt.Literal['array', 'list', None]=None, **k
         return
     
 
-def get_coordinates(groupnum:int, origin:cbt.vector_type, output:cbt.Literal['array', 'list']='array', a_mag:cbt.vector_type = np.array([1,1,1]), include_out_of_bounds=False) -> list|cbt.array|None:
+def get_coordinates(groupnum:int, origin:cbt.VectorType, output:cbt.Literal['array', 'list']='array', a_mag:cbt.VectorType = np.array([1,1,1]), include_out_of_bounds=False, **kwargs) -> list|cbt.Array|None:
     """Generates positions from specified origin and generator matrices
 
     Parameters
@@ -244,19 +247,24 @@ def get_coordinates(groupnum:int, origin:cbt.vector_type, output:cbt.Literal['ar
     groupnum : int
         One of 230 numbered space groups in the IUCr
         
-    origin : vector_type
+    origin : VectorType
         Any point that should be used as (x,y,z) for symmetry operations from the generator matrices. 
         
-    output_array : Literal['array', 'list'], optional, default 'array'
+    output : Literal['array', 'list'], optional, default 'array'
             'array' outputs m x 3 numpy array with m being the number of generator matrices. If 'list', outputs a list of lists
             
-    a_mag : vector_type, optional, default array[1,1,1]
+    a_mag : VectorType, optional, default array[1,1,1]
         Magnitude of lattice vector. All coordinates are multiplied by the components of this vector.
         
     include_out_of_bounds : bool, optional, default True
         Include (True, default) points that are outside of the range 0 to a_mag. This feature is a WIP.
         
+    kwargs
+    ------
+    output_array : bool
+        This was previously a regular argument, but was superseeded by `output`. For backwards compatiblity, this kwarg will override the choice made in `output`. E.g., True will return an array and False will return a list.
 
+    
     Returns
     -------
     coordinates : array, list, default array
@@ -264,9 +272,19 @@ def get_coordinates(groupnum:int, origin:cbt.vector_type, output:cbt.Literal['ar
 
 
     """
+    
+    output_kwarg = kwargs.get("output_array", None)
+    if output_kwarg is True:
+        output = 'array'
+    elif output_kwarg is False:
+        output = 'list'
+    else:
+        pass
+        
 
     bound_override = include_out_of_bounds
     lattice_scaling = np.asarray(a_mag)
+    logger.debug(f"origin: {origin}")
     position_vector = np.array([origin[0], origin[1], origin[2]]).reshape(3,1) #type:ignore
     matrix_list = get_genmat(groupnum, output='list')
     assert matrix_list is not None
@@ -337,7 +355,7 @@ class SpaceGroup():
         
         """
         
-        self.point_list: cbt.array|None = kwargs.get("points", None)
+        self.point_list: cbt.Array|None = kwargs.get("points", None)
         self.group_num = group_number
         
         self.kvec_dict = get_kvectors(self.group_num, output='dictionary')
@@ -347,7 +365,7 @@ class SpaceGroup():
 
         self.generated_points = self.calculate_points(self.point_list)
 
-    def calculate_points(self, point_list: list|cbt.array|None, a_mag: cbt.vector_type = [1,1,1], ignore_repeats:bool = True) -> cbt.array:
+    def calculate_points(self, point_list: list|cbt.Array|None, a_mag: cbt.VectorType = [1,1,1], ignore_repeats:bool = True) -> cbt.Array:
         """
         Return a list of coordinates resulting from symmetry operations to each point in `point_list`. This is called once if the `SpaceGroup` is initialized with the `points` kwarg.
         It can be called any number of times to directly return points from new `point_list` inputs.
@@ -368,10 +386,13 @@ class SpaceGroup():
         generated_points : ndarray
             Unique points resulting from the symmetry operations on points in point_list. This includes negative values and values greater than 1 (outside the primitive cell).
         """
-        generated_points:cbt.array = np.array([]).reshape(-1,3)
+        generated_points:cbt.Array = np.array([]).reshape(-1,3)
         if point_list is not None:
-            if any(isinstance(point, (list, np.ndarray)) for point in point_list):
+            logger.debug(f"Point list is: {point_list}")
+            logger.debug(f"point list type is: {type(point_list)}")
+            if any(isinstance(point, (list, np.ndarray, tuple)) for point in point_list):
                 for n in point_list:
+                    logger.debug(f"individual point in list is type: {type(n)}")
                     scaled_point = n * np.asarray(a_mag)
                     newpoint = get_coordinates(self.group_num, origin=scaled_point, a_mag=a_mag, output='array')
                     generated_points = np.vstack((generated_points, newpoint))
@@ -381,9 +402,10 @@ class SpaceGroup():
                     generated_points = np.unique(generated_points, axis=0)
                 
             else:
+                logger.debug(f"only found one point of type: {type(point_list)}")
                 scaled_point = point_list * np.asarray(a_mag)
                 print(scaled_point)
-                generated_points:cbt.array = get_coordinates(self.group_num, origin=scaled_point, a_mag=a_mag)
+                generated_points:cbt.Array = get_coordinates(self.group_num, origin=scaled_point, a_mag=a_mag)
                 generated_points.reshape(-1,3)
                 listlen=len(generated_points)
                 if ignore_repeats == True:

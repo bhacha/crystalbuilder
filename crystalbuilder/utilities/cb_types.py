@@ -9,17 +9,17 @@ import collections.abc as coll
 Literal = tp.Literal
 Iterable = coll.Iterable
 
-angle_unit_type = tp.Literal['deg', 'degrees', 'd', 'degree', 'radians', 'rad', 'r', 'radian']
-number = float 
+AngleUnits = tp.Literal['deg', 'degrees', 'd', 'degree', 'radians', 'rad', 'r', 'radian']
+Number = float 
 
 
 
-array = npt.ArrayLike
+Array = npt.NDArray
 
-vector_type = coll.Sequence | array
-axis_number = tp.Literal[0,1,2]
-axis_type = axis_number|array
+VectorType = coll.Sequence | Array
+AxisNumber = tp.Literal[0,1,2]
+AxisType = AxisNumber|VectorType
 
 
-vector_list = list[vector_type] | tuple[vector_type] | coll.Sequence[vector_type] | array
-matrix_like = list[coll.Sequence] | array 
+VectorSet = list[VectorType] | tuple[VectorType] | coll.Sequence[VectorType] | Array
+MatrixLike = list[coll.Sequence] | Array 

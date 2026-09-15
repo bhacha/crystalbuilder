@@ -9,8 +9,7 @@ Back to our diamond lattice. This is a face-centered cubic crystal, which has a 
 
     *"But wait, I thought the units didn't matter!"*
 
-
-Well, you're right. What we're doing here is defining our basis vectors so that the primitive cell we build will be a truly sized chunk of the conventional unit cell with dimensions `a` x `a` x `a`. You don't have to do this step, but you will need to do an extra scaling step at the end if you want to convert to wavelength (which likely depends on your conventional cell `a`). By scaling at the beginning, you can treat your conventional cell `a` as 1 and use MPB normally.
+Well, you're right (for MPB). What we're doing here is defining our basis vectors so that the primitive cell we build will be a truly sized chunk of the conventional unit cell with dimensions `a` x `a` x `a`. You don't have to do this step, but you will need to do an extra scaling step at the end if you want to convert to wavelength (which likely depends on your conventional cell `a`). By scaling at the beginning, you can treat your conventional cell `a` as 1 and use MPB normally.
 
 Let's import our packages and define our lattice.
 

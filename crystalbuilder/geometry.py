@@ -8,19 +8,20 @@ import scipy.spatial as scs
 
 from crystalbuilder import vectors as vm
 from crystalbuilder.utilities.utils import TransformationMatrix as tmat
-import crystalbuilder.utilities.cb_types as cbt
-number = cbt.number
 
-from typing import Literal, TYPE_CHECKING
+
+from typing import Literal, TYPE_CHECKING, TypeAlias
 
 if TYPE_CHECKING:
     from crystalbuilder.lattice import Lattice
+    from crystalbuilder.utilities.cb_types import Number, VectorSet, VectorType, AngleUnits, AxisType, Iterable
+
+
 
 import logging
 import warnings
 
 logger = logging.getLogger(__name__)
-
 
 
 
@@ -32,7 +33,7 @@ class Structure():
             
         self.name = kwargs.get("name", None)
         self.color = kwargs.get("color", None )
-        self.center: cbt.vector_type
+
 
 class SuperCell():
     """
@@ -64,7 +65,7 @@ class SuperCell():
 
     """
     def __init__(self, 
-                 geometries : Structure|list[type[Structure]],
+                 geometries : SingleStructure|list[SingleStructure],
                  point_format: Literal["center", "vertices"] = "center",
                  shift_enabled: bool = False ,
                  **kwargs
@@ -93,14 +94,15 @@ class SuperCell():
             self._instructures = [geometries]
         else:
             self._instructures = geometries
+            
         self.point_style = point_format
         
-        self.input_center: cbt.vector_type|None = kwargs.get('center', None)
+        self.input_center: VectorType|None = kwargs.get('center', None)
         self.rotation: int|None = kwargs.get('rotation', None)
-        self.translation : cbt.vector_type|None = kwargs.get('translation', None)
-        self.unit:cbt.angle_unit_type = kwargs.get('unit', 'degrees')
+        self.translation : VectorType|None = kwargs.get('translation', None)
+        self.unit: AngleUnits = kwargs.get('unit', 'degrees')
         self.shiftcell = shift_enabled
-        self.default_center: cbt.vector_type = kwargs.get('relative_center', [0,0,0])
+        self.default_center: VectorType = kwargs.get('relative_center', [0,0,0])
 
         if self.input_center == None:
             self.cellcenter = self.default_center
@@ -112,7 +114,7 @@ class SuperCell():
             deg = np.degrees(vm.angle_check(self.rotation, self.unit))
             self.rotatecell(deg)
         else:
-            self.structures = [(self._instructures)]
+            self.structures = self._instructures
 
         if self.shiftcell == True:
             self.center = self.cellcenter
@@ -121,7 +123,7 @@ class SuperCell():
         return iter(self.structures)
     
                    
-    def rotatecell(self, deg:number, copy=True):
+    def rotatecell(self, deg:Number, copy=True):
             """
             Rotation method for rotating a unit cell by deg around the supercell center. Unfortunately it only copies the cell for the moment, giving 360/deg numbers of the cell.
 
@@ -163,9 +165,8 @@ class SuperCell():
         """
         logger.debug(f"translating cell by {shiftvec} \n")
         for n in self.structures:
-            logger.debug(f"the structure's original center is {n.ogcenter}")
-            newcenter = np.asarray(n.original_center) + shiftvec
-            logger.debug(f"the structure's new center is {newcenter}")
+            newcenter = np.asarray(n._ogcenter) + shiftvec
+            logger.debug(f"the structure moved from {n._ogcenter} to {newcenter}")
             n.center = newcenter
 
     def _shift_center(self, oldcenter, newcenter):
@@ -229,37 +230,25 @@ class SuperCell():
         return cent
     
     @center.setter
-    def center(self, newcent):
-        self.cellcenter = newcent
-        logger.debug(f"geo: newcenter {newcent}")
-        self._shift_center(self.default_center, newcent)
+    def center(self, new_cell_center):
+        self.cellcenter = new_cell_center
+        logger.debug(f"geo: newcenter {new_cell_center}")
+        self._shift_center(self.default_center, new_cell_center)
         
-    @property
-    def radius(self):
-        rads = []
-        for n in self.structures:
-            rads.append(n.radius)
-        return rads
-    
-    @radius.setter
-    def radius(self, newrad):
-        for n in self.structures:
-            n.radius= newrad
-       
 class CylinderVortexCell(SuperCell):
 
     def __init__(
                 self,
                 lattice: Lattice,
-                center: cbt.vector_type,
-                radius_1: number,
-                R_max: number,
-                height: number = 10,
-                vort_center: cbt.vector_type = [0,0,0],
-                vort_radius: number = 1,
-                winding_number: number = 1,
-                radius_2: number|None = None,
-                scale: number = 0,
+                cell_center: VectorType,
+                radius_1: Number,
+                R_max: Number,
+                height: Number = 10,
+                vort_center: VectorType = [0,0,0],
+                vort_radius: Number = 1,
+                winding_number: Number = 1,
+                radius_2: Number|None = None,
+                scale: Number = 0,
                 **kwargs
         ) -> None:
             """
@@ -284,7 +273,7 @@ class CylinderVortexCell(SuperCell):
     
             """
             self.lattice = lattice
-            self.cellcenter = center
+            self.cellcenter = cell_center
             self.rad1 = radius_1
             if radius_2 == None:
                 self.rad2 = radius_1
@@ -327,12 +316,20 @@ class CylinderVortexCell(SuperCell):
         theta= np.arctan2(y, x)
         hypotenuse = np.hypot(x, y)
         return [hypotenuse, theta]
+    
+    @property
+    def center(self):
+        return self.cellcenter
+    
+    @center.setter
+    def center(self, new_cell_center):
+        self.cellcenter = new_cell_center
 
 class HexagonalVortexCell(SuperCell):
     def __init__(
             self,
             lattice,
-            center,
+            cell_center,
             side_length,
             m,
             m_max,
@@ -376,7 +373,7 @@ class HexagonalVortexCell(SuperCell):
         """
 
         self.lattice = lattice
-        self.diraccenter=center
+        self.cellcenter=cell_center
         self.m = m
         self.m0 = m_max
         self.phi = phi
@@ -394,15 +391,15 @@ class HexagonalVortexCell(SuperCell):
         unitcell = [triangle1, triangle2]
         
         #initialize parent supercell, specifying the center of the supercell and creating the structures by rotating the unit cell 3 times about the center
-        super().__init__(unitcell, center=self.diraccenter, rotation=120, unit='degrees', point='center' )
+        super().__init__(unitcell, center=self.cellcenter, rotation=120, unit='degrees', point='center' )
 
     @property
     def center(self):
-        return self.diraccenter
+        return self.cellcenter
     
     @center.setter
-    def center(self, center):
-        self.diraccenter = center
+    def center(self, new_cell_center):
+        self.cellcenter = new_cell_center
 
     def copy(self, **kwargs):
         """
@@ -425,23 +422,24 @@ class Cylinder(Structure):
     
     def __init__(
             self,
-            center: cbt.vector_type,
-            radius: number,
-            height: number,
-            axis: cbt.axis_type = 2,
+            center: VectorType,
+            radius: Number,
+            height: Number,
+            axis: AxisType = 2,
             **kwargs
     ) -> None:
         """
-        This creates a cylinder object centered at `center` with `radius` and `height` as inputted. The `axis` argument can be an integer from 0-2 (for x, y, z ), respectively, or an iterable vector to point along
+        This creates a cylinder object centered at `center` with `radius` and `height` as specified. 
+        The `axis` argument can be an integer from 0-2 (for x, y, z  respectively), or an iterable vector that specifies the cylinder axis
         """
         super().__init__(**kwargs)
         self.center = center
         self.original_center = kwargs.get("original_center", center)
-        self.ogcenter = self.original_center
+        self._ogcenter = self.original_center
         self.radius = radius
         self.height = height      
         self.inaxis = axis
-        self.axis = axis
+        self.axis:AxisType = axis
         
         try: 
             if self.axis==2:
@@ -453,7 +451,10 @@ class Cylinder(Structure):
             else:
                 self.axis = self.axis[:2] # take the first three values as a three vector
         except ValueError:
-            pass
+            raise Exception("Error: Axis not specified correctly.")
+        
+
+        
 
     @classmethod
     def from_vertices(cls, vertices, radius, height_padding=False):
@@ -474,13 +475,13 @@ class Cylinder(Structure):
         vert1 = np.asarray(vertices[0])
         vert2 = np.asarray(vertices[1])
         if height_padding == False:
-            height = np.linalg.norm((vert2 - vert1)) + np.linalg.norm((vert2-vert1))*.01
+            height = float(np.linalg.norm((vert2 - vert1)) + np.linalg.norm((vert2-vert1))*.01)
         else:
-            height = np.linalg.norm((vert2 - vert1))+height_padding
+            height = float(np.linalg.norm((vert2 - vert1))+height_padding)
 
         
         center = np.mean((vert1, vert2), axis=0)
-        axis:cbt.axis_type = vert2 - vert1
+        axis: AxisType = vert2 - vert1
         return cls(center=center, radius=radius, height=height, axis=axis)
     
     @classmethod
@@ -502,8 +503,8 @@ class Cylinder(Structure):
         'radius' : float of new radius for copied object        
 
         """
-        cent: cbt.vector_type|None = kwargs.get('center', None)
-        rad: cbt.number|None = kwargs.get('radius', None)
+        cent: VectorType|None = kwargs.get('center', None)
+        rad: Number|None = kwargs.get('radius', None)
   
 
         if rad is not None: 
@@ -519,7 +520,7 @@ class Cylinder(Structure):
         else:
             newcent = self.center
             
-        newcopy = Cylinder(newcent, newrad, self.height, self.inaxis, original_center=self.ogcenter)
+        newcopy = Cylinder(newcent, newrad, self.height, self.axis, original_center=self._ogcenter)
         
         return newcopy
 
@@ -534,7 +535,7 @@ class Sphere(Structure):
         super().__init__(**kwargs)
         self.center = self.format_center(center)
         self.original_center = self.format_center(kwargs.get("original_center", center))
-        self.ogcenter = self.original_center
+        self._ogcenter = self.original_center
         self.radius = radius
     
     def format_center(self, raw_center):
@@ -572,7 +573,7 @@ class Sphere(Structure):
             newcent = cent
         else:
             newcent = self.center
-        newcopy = Sphere(newcent, newrad, original_center=self.ogcenter)
+        newcopy = Sphere(newcent, newrad, original_center=self._ogcenter)
         
         return newcopy
 
@@ -797,9 +798,9 @@ class Block(Structure):
         Create a Block from a set of vectors, using their magnitudes to define the size by default. This is different than MEEP/MPB, which ignores the size. If `size` is not None, use the passed values to rescale like MEEP/MPB.
         """
         super().__init__(**kwargs)
-        self.invec_array: cbt.vector_list = np.array([vectors[0], vectors[1], vectors[2]])
+        self.invec_array: VectorSet = np.array([vectors[0], vectors[1], vectors[2]])
         
-        self.input_magnitudes: list|cbt.Iterable|None = size
+        self.input_magnitudes: Iterable|None = size
 
         self.normalized_vecs = np.zeros([3,3]) #Zeros until `_normalize_vectors`
         self.calculated_magnitudes = np.zeros(3) # Zero until `_normalize_vectors`
@@ -921,7 +922,7 @@ class Block(Structure):
 
         self.edge_array = edge_array  
                 
-    def _normalize_vectors(self, vectors:cbt.vector_list):
+    def _normalize_vectors(self, vectors:VectorSet):
         """ Gets magnitudes of input vectors and creates an array of unit vectors from input"""
         for index, vect in enumerate(vectors):
             npvec = np.asarray(vect)
@@ -999,6 +1000,10 @@ def NearestNeighbors(points, radius, neighborhood_range, a_mag=1.0):
     return structure_list
 
 
+
+# Unfortunately these types can't be easily put into cb_types. Sphinx autodoc doesn't support `if TypeChecking`, so it causes a circular import. 
+SingleStructure: TypeAlias = Structure | Cylinder |Sphere | Triangle | eqTriangle | Block
+GroupStructure: TypeAlias = SingleStructure | list[Cylinder]
 
 
 if __name__ == "__main__":

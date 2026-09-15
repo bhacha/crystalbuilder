@@ -1,20 +1,19 @@
 import numpy as np
 from numpy._typing._array_like import NDArray
 import crystalbuilder.utilities.cb_types as cbt
-from matplotlib import pyplot as plt
+from crystalbuilder.utilities.cb_types import Number, VectorSet, VectorType, AngleUnits, AxisType, Iterable
 import logging
 
 logger = logging.getLogger(__name__)
 
 rounder = 50 #sets decimal rounding
 #Needs Done
-number = cbt.number
 
 def flatten(list: list) -> list:
     flat_list = [item for sublist in list for item in sublist]
     return flat_list
 
-def angle_check(theta:number, unit:cbt.angle_unit_type) -> float:
+def angle_check(theta:Number, unit:AngleUnits) -> float:
     if unit == 'degrees' or 'deg' or 'd' or 'degree':
         radthet = float(np.radians(theta))
     elif unit == 'radians' or 'rad' or 'r' or 'radian':    
@@ -24,7 +23,7 @@ def angle_check(theta:number, unit:cbt.angle_unit_type) -> float:
         return 0
     return radthet
 
-def shift(point:cbt.vector_type, shift_vector:cbt.vector_type) -> NDArray:
+def shift(point:VectorType, shift_vector:VectorType) -> NDArray:
     """
     TO DO
 
@@ -35,13 +34,13 @@ def shift(point:cbt.vector_type, shift_vector:cbt.vector_type) -> NDArray:
     shiftedpoint = point_arr.reshape(3,) + shiftvec.reshape(3,)
     return shiftedpoint
 
-def get_shift_vector(point:cbt.vector_type, newpoint:cbt.vector_type) -> NDArray:
+def get_shift_vector(point:VectorType, newpoint:VectorType) -> NDArray:
     point_arr = np.asarray(point)
     newpoint = np.asarray(newpoint)
     shiftvec = newpoint.reshape(3,) - point_arr.reshape(3,)
     return shiftvec
 
-def shift_angle(point:cbt.vector_type, theta:number, distance:number, unit: cbt.angle_unit_type='degrees'):
+def shift_angle(point:VectorType, theta:Number, distance:Number, unit: AngleUnits='degrees'):
     """
     Shifts in x-y plane a distance at angle theta
     """
@@ -50,7 +49,7 @@ def shift_angle(point:cbt.vector_type, theta:number, distance:number, unit: cbt.
     shiftedpoint = point_arr.reshape(3,) + shiftvec.reshape(3,)
     return shiftedpoint
 
-def rotate(point:cbt.vector_type, theta:number, relative_point:cbt.vector_type =(0,0,0), axis: cbt.axis_number = 2, unit: cbt.angle_unit_type='degrees', toarray:bool=True) -> cbt.vector_type|cbt.vector_list:
+def rotate(point:VectorType, theta:Number, relative_point:VectorType =(0,0,0), axis: AxisType = 2, unit: AngleUnits='degrees', toarray:bool=True) -> VectorType|VectorSet:
     """
     rotates counterclockwise a point or list of points about relative_point by theta in
     This does a 2D rotation only, so string a few together to rotate in more than one axis
@@ -100,7 +99,7 @@ def rotate(point:cbt.vector_type, theta:number, relative_point:cbt.vector_type =
 
     return new_coordinates 
 
-def rotatex(point:cbt.vector_type, theta:number, relative_point:cbt.vector_type) -> NDArray:
+def rotatex(point:VectorType, theta:Number, relative_point:VectorType) -> NDArray:
     """
     rotates counterclockwise a point in x by theta radians about relative_point
     """
@@ -141,7 +140,7 @@ def rotatex(point:cbt.vector_type, theta:number, relative_point:cbt.vector_type)
     rotation = np.matmul(rt2mat, np.array([[x],[y],[z],[1]]))
     return rotation[:3]
 
-def rotatey(point:cbt.vector_type, theta:number, relative_point:cbt.vector_type) -> NDArray:
+def rotatey(point:VectorType, theta:Number, relative_point:VectorType) -> NDArray:
     """
     rotates counterclockwise a point in y by theta radians about relative_point
     """
@@ -183,7 +182,7 @@ def rotatey(point:cbt.vector_type, theta:number, relative_point:cbt.vector_type)
     rotation = np.matmul(rt2mat, np.array([[x],[y],[z],[1]]))
     return rotation[:3]
 
-def rotatez(point:cbt.vector_type, theta:number, relative_point:cbt.vector_type) -> NDArray:
+def rotatez(point:VectorType, theta:Number, relative_point:VectorType) -> NDArray:
     """
     rotates counterclockwise a point in z by theta radians about relative_point
     """
@@ -227,7 +226,7 @@ def rotatez(point:cbt.vector_type, theta:number, relative_point:cbt.vector_type)
     rotation = np.matmul(rt2mat, np.array([[x],[y],[z],[1]]))
     return rotation[:3]
 
-def basis_change(basis1:cbt.vector_type|cbt.Literal['cartesian'], basis2:cbt.vector_type|cbt.Literal['cartesian'], point_in_basis1) -> NDArray:
+def basis_change(basis1:VectorType|cbt.Literal['cartesian'], basis2:VectorType|cbt.Literal['cartesian'], point_in_basis1) -> NDArray:
     """
     makes column vectors from basis1 and basis2, then determines the change-of-basis matrix. Applies this to specified point and returns the coordinate in the other basis.
 
@@ -261,7 +260,7 @@ def basis_change(basis1:cbt.vector_type|cbt.Literal['cartesian'], basis2:cbt.vec
     outpoint = np.matmul(bas2_arr, newpoint)
     return outpoint.reshape(3,)
 
-def cart_to_pol(point:cbt.vector_type) -> list:
+def cart_to_pol(point:VectorType) -> list:
     x = point[0]
     y = point[1]
     z = point[2]

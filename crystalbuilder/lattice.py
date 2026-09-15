@@ -3,6 +3,7 @@ import numpy as np
 import crystalbuilder.utilities.cb_types as cbt
 from crystalbuilder import vectors as vm
 from crystalbuilder import geometry as geo
+from crystalbuilder.utilities.cb_types import Number, VectorSet, VectorType, AngleUnits, AxisType, Iterable
 import logging
 logger = logging.getLogger(__name__)
 
@@ -49,10 +50,10 @@ class Lattice:
 
     def __init__(
             self,
-            a1: cbt.vector_type = np.array([1,0,0]),
-            a2: cbt.vector_type = np.array([0,1,0]),
-            a3: cbt.vector_type = np.array([0,0,1]),
-            magnitude: cbt.vector_type = np.array([1,1,1]),
+            a1: VectorType = np.array([1,0,0]),
+            a2: VectorType = np.array([0,1,0]),
+            a3: VectorType = np.array([0,0,1]),
+            magnitude: VectorType = np.array([1,1,1]),
             **kwargs):
         """
         The Lattice class can be initialized with specified a1, a2, a3 vectors and magnitude
@@ -90,8 +91,8 @@ class Lattice:
 ### Basis Manipulation ###
     def rotate_basis(self, 
                     theta: float, 
-                    axis: cbt.axis_number = 2, 
-                    unit: cbt.angle_unit_type ='degrees'):
+                    axis: AxisType = 2, 
+                    unit: AngleUnits ='degrees'):
         """ Rotate the basis by a specified angle
 
         Parameters
@@ -124,7 +125,7 @@ class Lattice:
     
 ### Tiling Methods ###
     def tile_mpgeometry(self, 
-                        VerticesList: cbt.vector_list,
+                        VerticesList: VectorSet,
                         a1reps:int,
                         a2reps:int,
                         a3reps:int, 
