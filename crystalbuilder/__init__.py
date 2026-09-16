@@ -2,7 +2,7 @@ from importlib.metadata import version, PackageNotFoundError
 import logging
 import sys
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 
 try:
     __version__ = version("crystalbuilder")
@@ -16,6 +16,8 @@ import crystalbuilder.convert as convert
 import crystalbuilder.bilbao as bilbao
 import crystalbuilder.viewers.viewer as viewer
 import crystalbuilder.viewers.newviewer as newviewer
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __all__ = ["geometry", "lattice", "vectors", "convert", "bilbao", "viewer", "newviewer"]
 

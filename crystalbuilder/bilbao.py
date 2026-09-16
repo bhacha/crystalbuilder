@@ -10,8 +10,13 @@ import json
 import crystalbuilder.utilities.cb_types as cbt    
 import logging
 
-logger = logging.getLogger(__name__)
-logger.debug("Bilbao is logging.")
+baselogger = logging.getLogger(__name__)
+class LatticeAdapter(logging.LoggerAdapter):
+    
+    def process(self, msg, kwargs):
+        return f'{self.extra['prefix']} - {msg}', kwargs # pyright: ignore[reportOptionalSubscript]
+
+logger = LatticeAdapter(baselogger, {'prefix':"bilbao.py"})
 
 bilbao_url = "https://cryst.ehu.es/"
 

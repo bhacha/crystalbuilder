@@ -5,7 +5,15 @@ from crystalbuilder import vectors as vm
 from crystalbuilder import geometry as geo
 from crystalbuilder.utilities.cb_types import Number, VectorSet, VectorType, AngleUnits, AxisType, Iterable
 import logging
-logger = logging.getLogger(__name__)
+
+
+baselogger = logging.getLogger(__name__)
+class LatticeAdapter(logging.LoggerAdapter):
+    
+    def process(self, msg, kwargs):
+        return f'{self.extra['prefix']} - {msg}', kwargs # pyright: ignore[reportOptionalSubscript]
+
+logger = LatticeAdapter(baselogger, {'prefix':"lattice.py"})
 
 
 # For Tidy3D methods, try/except statements are used to import tidy3d at runtime, so it's safe to ignore errors about missing imports. 
@@ -297,60 +305,60 @@ class Lattice:
    
         newgeom = []
         if isinstance(Geometry, geo.Triangle):
-            logger.debug("Lat: Geometry is a Triangle")
+            logger.debug("Geometry is a Triangle")
             xcen = Geometry.center[0]
             ycen = Geometry.center[1]
             zcen = Geometry.center[2]
-            logger.debug(f"Lat: {[xcen, ycen, zcen]}")
+            logger.debug(f"Triangle Center {[xcen, ycen, zcen]}")
 
             tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            logger.debug(f"Lat: {tiledpoints}")
+            logger.debug(f"Tiled Triangle Points: {tiledpoints}")
 
             for m in range(0,len(tiledpoints)):
-                logger.debug(f"Lat: the center is: {tiledpoints[m]} ")
+                # logger.debug(f"Tiled Triangle center is: {tiledpoints[m]} ")
                 newstruct = Geometry.copy(center=tiledpoints[m])
                 newgeom.append(newstruct)
             
-            logger.debug(f"Lat: newgeom = {newgeom[0].center}, {newgeom[1].center}")
+            logger.debug(f"newgeom = {newgeom[0].center}, {newgeom[1].center}")
     
         elif isinstance(Geometry, geo.Sphere):
-            logger.debug("Lat: Geometry is a Sphere")
+            logger.debug("Geometry is a Sphere")
             xcen = Geometry.center[0]
             ycen = Geometry.center[1]
             zcen = Geometry.center[2]
-            logger.debug(f"Lat: {[xcen, ycen, zcen]}")
+            logger.debug(f"Sphere Center: {[xcen, ycen, zcen]}")
 
             tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            logger.debug(f"Lat: {tiledpoints}")
+            logger.debug(f"Tiled Sphere Center: {tiledpoints}")
 
             for m in range(0,len(tiledpoints)):
-                logger.debug(f"Lat: the center is: {tiledpoints[m]} ")
+                # logger.debug(f"Sphere center is: {tiledpoints[m]} ")
                 newstruct = Geometry.copy(center=tiledpoints[m])
                 newgeom.append(newstruct)
             
-            logger.debug(f"Lat: newgeom = {newgeom[0].center}, {newgeom[1].center}")
+            logger.debug(f"newgeom = {newgeom[0].center}, {newgeom[1].center}")
                 
         elif isinstance(Geometry, geo.Block):
-            logger.debug("Lat: Geometry is a Block")
+            logger.debug("Geometry is a Block")
             xcen = Geometry.center[0]
             ycen = Geometry.center[1]
             zcen = Geometry.center[2]
             
             
             tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            logger.debug(f"Lat: {tiledpoints}")
+            logger.debug(f"{tiledpoints}")
             
 
             for m in range(0,len(tiledpoints)):
-                logger.debug(f"Lat: the center is: {tiledpoints[m]} ")
+                logger.debug(f"the center is: {tiledpoints[m]} ")
                 newstruct = Geometry.copy(center=tiledpoints[m])
                 newgeom.append(newstruct)
             
-            logger.debug(f"Lat: newgeom = {newgeom[0].center}, {newgeom[1].center}")
+            logger.debug(f"newgeom = {newgeom[0].center}, {newgeom[1].center}")
             
 
         elif isinstance(Geometry, list):
-            logger.debug("Lat: Geometry is a list")
+            logger.debug("Geometry is a list")
             for n in Geometry:
                 if isinstance(n, geo.Structure):
                     xcen = n.center[0]
@@ -367,22 +375,21 @@ class Lattice:
                     newgeom.append(sublist)
 
         elif isinstance(Geometry, geo.SuperCell):
-            logger.debug("Lat: Geometry is a SuperCell")
+            logger.debug("Geometry is a SuperCell")
             xcen = Geometry.center[0]
             ycen = Geometry.center[1]
             zcen = Geometry.center[2]
-            logger.debug(f"Lat: Cell Center is {[xcen, ycen, zcen]}")
+            logger.debug(f"Cell Center is {[xcen, ycen, zcen]}")
 
             tiledpoints = self.tiling([xcen, ycen,zcen], a1reps, a2reps, a3reps, style=style)
-            logger.debug(f"Lat: The Tiled Points are at {tiledpoints}")
+            logger.debug(f"The Tiled Points are at {tiledpoints}")
 
             for m in range(0,len(tiledpoints)):
-                logger.debug(f"Lat: the center is: {tiledpoints[m]}")
+                logger.debug(f"the center is: {tiledpoints[m]}")
                 newstruct = Geometry.copy(center=tiledpoints[m], relative_center=[xcen, ycen, zcen])
                 newgeom.append(newstruct)
-            
-            
-                logger.debug(f"Lat: newgeom = {newgeom[0].center} {newgeom[1].center}")
+                
+            logger.debug(f"newgeom = {newgeom[0].center} {newgeom[1].center}")
 
         else:
             raise ValueError(f"Geometry must be a CrystalBuilder.geometry object, not {type(Geometry)}")
@@ -543,25 +550,26 @@ class Lattice:
 ### Tiling Modifications ###
     """ These are functions that apply the below modulations to the tiled lattice"""
 
-    def modulate_cells(self, structure, vortex_radius, winding_number, max_modulation, modulation_type='radius', whole_cell=True, plot_modulation = False, **kwargs ):
+    def modulate_cells(self, structure, vortex_radius, winding_number, max_modulation, modulation_type: cbt.Literal['radius', 'balanced', 'dual']='radius', whole_cell=False, plot_modulation = False, **kwargs ):
         logger.debug(f"Modulating Cells for {structure}")
         poslist = []
         modlist = []
         ax = kwargs.get("ax")
         if (modulation_type=="radius") or (modulation_type=="balanced"):
             if whole_cell == True:
-                """This does discrete modifications of each supercell, not a continuous overlaid modulation"""
-                modulation = self.kekule_modulation(geo_object=structure, vortex_radius=vortex_radius, winding_number=winding_number, max_modulation=max_modulation, modulation_type=modulation_type,output_modulation= plot_modulation)
-                if modulation != None:
-                    if plot_modulation == True:
-                        if ax != None:
-                            _plot_modulation(modulation, ax=ax)
-                        else:
-                            _plot_modulation(modulation)
-                    poslist.append(modulation[0])
-                    modlist.append(modulation[1])
-                    print(modulation)
-                    modlist.append(modulation)
+                raise NotImplementedError
+                # """This does discrete modifications of each supercell, not a continuous overlaid modulation"""
+                # modulation = self.kekule_modulation(geo_object=structure, vortex_radius=vortex_radius, winding_number=winding_number, max_modulation=max_modulation, modulation_type=modulation_type,output_modulation= plot_modulation)
+                # if modulation != None:
+                #     if plot_modulation == True:
+                #         if ax != None:
+                #             _plot_modulation(modulation, ax=ax)
+                #         else:
+                #             _plot_modulation(modulation)
+                #     poslist.append(modulation[0])
+                #     modlist.append(modulation[1])
+                #     print(modulation)
+                #     modlist.append(modulation)
                 
 
             else:
@@ -730,9 +738,9 @@ class Lattice:
         KPlus = np.array([4*np.pi/(3*self.latt_const), 0])
         KMinus = np.array([-4*np.pi/(3*self.latt_const), 0])
         Ktot = KPlus - KMinus
-        logger.debug(f"lat: Ktot = {Ktot}")
+        logger.debug(f"Ktot = {Ktot}")
         costerm = np.cos(np.dot(Ktot, cartpos) + (winding*theta))
-        logger.debug(f"lat: dot product = {np.dot(Ktot, cartpos)}" )
+        logger.debug(f"dot product = {np.dot(Ktot, cartpos)}" )
         logger.debug(f"costerm = {costerm}")
         RMod = delR_term[0] * costerm
         logger.debug(f"RMod = {RMod}")

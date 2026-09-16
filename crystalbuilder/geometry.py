@@ -21,7 +21,13 @@ if TYPE_CHECKING:
 import logging
 import warnings
 
-logger = logging.getLogger(__name__)
+baselogger = logging.getLogger(__name__)
+class LatticeAdapter(logging.LoggerAdapter):
+    
+    def process(self, msg, kwargs):
+        return f'{self.extra['prefix']} - {msg}', kwargs # pyright: ignore[reportOptionalSubscript]
+
+logger = LatticeAdapter(baselogger, {'prefix':"geometry.py"})
 
 
 
@@ -448,10 +454,11 @@ class Cylinder(Structure):
                 self.axis=np.array([0, 1, 0])
             elif self.axis==0:
                 self.axis=np.array([1, 0, 0])
-            else:
-                self.axis = self.axis[:2] # take the first three values as a three vector
         except ValueError:
-            raise Exception("Error: Axis not specified correctly.")
+            try:
+                self.axis = self.inaxis[:2] # take the first three values as a three vector
+            except ValueError:
+                raise Exception("Error: Axis not specified correctly.")
         
 
         
@@ -519,7 +526,8 @@ class Cylinder(Structure):
             newcent = cent
         else:
             newcent = self.center
-            
+        
+        logger.debug(f"axis = {self.axis}") 
         newcopy = Cylinder(newcent, newrad, self.height, self.axis, original_center=self._ogcenter)
         
         return newcopy

@@ -5,7 +5,13 @@ import crystalbuilder.geometry as geo, crystalbuilder.lattice as lattice
 import logging
 import warnings
 
-logger = logging.getLogger(__name__)
+baselogger = logging.getLogger(__name__)
+class LatticeAdapter(logging.LoggerAdapter):
+    
+    def process(self, msg, kwargs):
+        return f'{self.extra['prefix']} - {msg}', kwargs
+
+logger = LatticeAdapter(baselogger, {'prefix':"newviewer.py"})
 
 
 try:
