@@ -244,7 +244,7 @@ def get_genmat(groupnum:int, output:cbt.Literal['array', 'list', None]=None, **k
         return
     
 
-def get_coordinates(groupnum:int, origin:cbt.VectorType, output:cbt.Literal['array', 'list']='array', a_mag:cbt.VectorType = np.array([1,1,1]), include_out_of_bounds=False, **kwargs) -> list|cbt.Array|None:
+def get_coordinates(groupnum:int, origin:cbt.VectorType, output:cbt.Literal['array', 'list']='array', a_mag:cbt.VectorType = np.array([1,1,1]), include_out_of_bounds=True, **kwargs) -> list|cbt.Array|None:
     """Generates positions from specified origin and generator matrices
 
     Parameters

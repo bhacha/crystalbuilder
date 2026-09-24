@@ -456,7 +456,7 @@ class Cylinder(Structure):
                 self.axis=np.array([1, 0, 0])
         except ValueError:
             try:
-                self.axis = self.inaxis[:2] # take the first three values as a three vector
+                self.axis = self.inaxis[:3] # take the first three values as a three vector. I have no idea why the indexing needs to be like this. 
             except ValueError:
                 raise Exception("Error: Axis not specified correctly.")
         
